@@ -1,0 +1,334 @@
+<div class="movie-detail-page">
+  @if (cargando()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando detalles de la película y funciones...</p>
+    </div>
+  } @else if (pelicula(); as p) {
+    <!-- HERO DE LA PELÍCULA -->
+    <div class="movie-hero">
+      <div class="container hero-content">
+        <div class="hero-poster">
+          <img [src]="p.imagen_url" [alt]="p.titulo" />
+        </div>
+
+        <div class="hero-details">
+          <div class="badges-row">
+            <span class="badge" [class.badge-red]="p.clasificacion_edad === '+18'" [class.badge-gold]="p.clasificacion_edad === '+13'" [class.badge-green]="p.clasificacion_edad === 'ATP'">
+              {{ p.clasificacion_edad }}
+            </span>
+            <span class="badge badge-blue">⏱️ {{ p.duracion_minutos }} min</span>
+            @for (fmt of p.formatos; track fmt) {
+              <span class="badge badge-gold">{{ fmt }}</span>
+            }
+          </div>
+
+          <h1 class="movie-title">{{ p.titulo }}</h1>
+
+          <!-- PUNTUACIÓN Y ESTRELLAS -->
+          <div class="rating-box">
+            <span class="stars">⭐⭐⭐⭐⭐</span>
+            <span class="rating-score">{{ promedioEstrellasTexto() }}</span>
+            <span class="rating-count">({{ totalResenas() }} opiniones)</span>
+          </div>
+
+          <div class="genres-box">
+            @for (g of p.generos; track g) {
+              <span class="genre-pill">{{ g }}</span>
+            }
+          </div>
+
+          <p class="synopsis">{{ p.sinopsis }}</p>
+
+          <!-- ADVERTENCIA DE EDAD SEGÚN REQUERIMIENTO -->
+          @if (p.clasificacion_edad !== 'ATP') {
+            <div class="age-alert-box">
+              <span class="alert-icon">⚠️</span>
+              <div>
+                <strong>Restricción de Edad ({{ p.clasificacion_edad }}):</strong>
+                <p>Cualquier entrada comprada para esta película requiere que los menores ingresen acompañados de un adulto responsable.</p>
+              </div>
+            </div>
+          }
+
+          @if (!esAptoPorEdad()) {
+            <div class="age-blocked-alert">
+              🚫 Según tu fecha de nacimiento registrada, eres menor de la edad permitida para esta función.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- SELECCIÓN DE FUNCIONES -->
+    <section class="screenings-section container">
+      <div class="section-heading">
+        <h2>1. Selecciona tu Función</h2>
+        <p>Elige el horario, sala y formato de tu preferencia</p>
+      </div>
+
+      @if (funciones().length === 0) {
+        <div class="no-screenings-box">
+          <p>ℹ️ No hay funciones programadas en este momento para esta película. Pronto se asignarán nuevas salas.</p>
+        </div>
+      } @else {
+        <div class="screenings-grid">
+          @for (f of funciones(); track f.id) {
+            <button
+              (click)="seleccionarFuncion(f)"
+              class="screening-card"
+              [class.selected]="funcionSeleccionada()?.id === f.id"
+            >
+              <div class="screening-time">
+                {{ f.fecha_hora | date:'HH:mm' }} hs
+              </div>
+              <div class="screening-date">
+                {{ f.fecha_hora | date:'EEE d MMM' }}
+              </div>
+              <div class="screening-hall">
+                {{ f.sala?.nombre || ('Sala ' + f.sala_id) }}
+              </div>
+              <div class="screening-tags">
+                <span class="tag-format">{{ f.formato }}</span>
+                <span class="tag-lang">{{ f.idioma }}</span>
+              </div>
+              <div class="screening-price">
+                ${{ f.precio_base }}
+              </div>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- MAPA DE BUTACAS EN TIEMPO REAL -->
+    @if (funcionSeleccionada(); as fSel) {
+      <section class="seating-section container">
+        <div class="section-heading">
+          <h2>2. Selecciona tus Butacas</h2>
+          <p>
+            Sala física inmutable: 20 filas (A a T) con columnas de 4, 20 y 4.
+            <span class="highlight-blue">Filas J y K exclusivas para discapacidad</span> y
+            <span class="highlight-gold">Filas R, S y T categoría VIP</span>.
+          </p>
+        </div>
+
+        <!-- LEYENDA DEL MAPA -->
+        <div class="seating-legend">
+          <div class="legend-item">
+            <span class="seat-sample seat-sample-normal"></span>
+            <span>Común (${{ fSel.precio_base }})</span>
+          </div>
+          <div class="legend-item">
+            <span class="seat-sample seat-sample-disability">♿</span>
+            <span>Discapacidad (Filas J-K)</span>
+          </div>
+          <div class="legend-item">
+            <span class="seat-sample seat-sample-vip">👑</span>
+            <span>VIP (+${{ 1500 }}) (Filas R-S-T)</span>
+          </div>
+          <div class="legend-item">
+            <span class="seat-sample seat-sample-selected"></span>
+            <span>Tu Selección</span>
+          </div>
+          <div class="legend-item">
+            <span class="seat-sample seat-sample-occupied"></span>
+            <span>Ocupada</span>
+          </div>
+        </div>
+
+        <!-- PANTALLA VISUAL -->
+        <div class="screen-area">
+          <div class="screen-line"></div>
+          <span class="screen-label">P A N T A L L A</span>
+        </div>
+
+        @if (cargandoButacas()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Sincronizando butacas en tiempo real...</p>
+          </div>
+        } @else {
+          <!-- CONTENEDOR CON SCROLL HORIZONTAL DE LA SALA -->
+          <div class="room-canvas-wrapper">
+            <div class="room-grid">
+              @for (fila of mapaFilas(); track fila.letra) {
+                <div class="seat-row" [class.row-disability]="fila.esDiscapacidad" [class.row-vip]="fila.esVip">
+                  <!-- Letra Izquierda -->
+                  <span class="row-letter">{{ fila.letra }}</span>
+
+                  <!-- Bloque Izquierdo (4 butacas o 2 si J/K) -->
+                  <div class="seat-block block-left">
+                    @for (b of fila.bloqueIzquierdo; track b.numero) {
+                      <button
+                        (click)="toggleButaca(b)"
+                        [disabled]="b.ocupada"
+                        class="seat-btn"
+                        [class.seat-comun]="b.tipo === 'comun'"
+                        [class.seat-disability]="b.tipo === 'discapacidad'"
+                        [class.seat-vip]="b.tipo === 'vip'"
+                        [class.seat-selected]="isButacaSeleccionada(b)"
+                        [class.seat-occupied]="b.ocupada"
+                        [title]="b.fila + '-' + b.numero + ' (' + b.tipo + ' $' + b.precio + ')'"
+                      >
+                        @if (b.tipo === 'discapacidad') { ♿ }
+                        @else if (b.tipo === 'vip') { 👑 }
+                        @else { {{ b.numero }} }
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Pasillo Izquierdo -->
+                  <div class="aisle"></div>
+
+                  <!-- Bloque Central (20 butacas o 10 si J/K) -->
+                  <div class="seat-block block-center">
+                    @for (b of fila.bloqueCentro; track b.numero) {
+                      <button
+                        (click)="toggleButaca(b)"
+                        [disabled]="b.ocupada"
+                        class="seat-btn"
+                        [class.seat-comun]="b.tipo === 'comun'"
+                        [class.seat-disability]="b.tipo === 'discapacidad'"
+                        [class.seat-vip]="b.tipo === 'vip'"
+                        [class.seat-selected]="isButacaSeleccionada(b)"
+                        [class.seat-occupied]="b.ocupada"
+                        [title]="b.fila + '-' + b.numero + ' (' + b.tipo + ' $' + b.precio + ')'"
+                      >
+                        @if (b.tipo === 'discapacidad') { ♿ }
+                        @else if (b.tipo === 'vip') { 👑 }
+                        @else { {{ b.numero }} }
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Pasillo Derecho -->
+                  <div class="aisle"></div>
+
+                  <!-- Bloque Derecho (4 butacas o 2 si J/K) -->
+                  <div class="seat-block block-right">
+                    @for (b of fila.bloqueDerecho; track b.numero) {
+                      <button
+                        (click)="toggleButaca(b)"
+                        [disabled]="b.ocupada"
+                        class="seat-btn"
+                        [class.seat-comun]="b.tipo === 'comun'"
+                        [class.seat-disability]="b.tipo === 'discapacidad'"
+                        [class.seat-vip]="b.tipo === 'vip'"
+                        [class.seat-selected]="isButacaSeleccionada(b)"
+                        [class.seat-occupied]="b.ocupada"
+                        [title]="b.fila + '-' + b.numero + ' (' + b.tipo + ' $' + b.precio + ')'"
+                      >
+                        @if (b.tipo === 'discapacidad') { ♿ }
+                        @else if (b.tipo === 'vip') { 👑 }
+                        @else { {{ b.numero }} }
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Letra Derecha -->
+                  <span class="row-letter">{{ fila.letra }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- BARRA FLOTANTE DE CONFIRMACIÓN DE BUTACAS -->
+        @if (butacasSeleccionadas().length > 0) {
+          <div class="seating-action-bar">
+            <div class="selected-details">
+              <strong>{{ butacasSeleccionadas().length }} butacas seleccionadas:</strong>
+              <div class="selected-pills-list">
+                @for (b of butacasSeleccionadas(); track b.fila + b.numero) {
+                  <span class="selected-seat-pill" [class.vip-pill]="b.tipo === 'vip'" [class.disability-pill]="b.tipo === 'discapacidad'">
+                    {{ b.fila }}-{{ b.numero }} ({{ b.tipo | uppercase }})
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="seating-checkout-side">
+              <div class="price-summary">
+                <span>Subtotal Entradas:</span>
+                <span class="price-large">${{ totalButacas() }}</span>
+              </div>
+
+              <button (click)="confirmarYContinuar()" class="btn-primary">
+                Añadir Snacks / Pagar ➔
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- SECCIÓN DE RESEÑAS Y OPINIONES -->
+    <section class="reviews-section container">
+      <div class="section-heading">
+        <h2>Opiniones y Calificaciones</h2>
+        <p>Conoce lo que dicen otros espectadores antes de sacar tus entradas</p>
+      </div>
+
+      <!-- Formulario para dejar reseña -->
+      <div class="new-review-card">
+        <h3>Deja tu comentario sobre la película</h3>
+        <div class="review-stars-select">
+          <label>Calificación:</label>
+          <div class="stars-buttons">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                (click)="nuevaCalificacion.set(star)"
+                class="star-pick-btn"
+                [class.active]="nuevaCalificacion() >= star"
+              >
+                ⭐
+              </button>
+            }
+            <span class="stars-val">{{ nuevaCalificacion() }} / 5 estrellas</span>
+          </div>
+        </div>
+
+        <div class="review-input-box">
+          <textarea
+            [ngModel]="nuevoComentario()"
+            (ngModelChange)="nuevoComentario.set($event)"
+            placeholder="Escribe un comentario corto de la película..."
+            rows="3"
+            class="form-control"
+          ></textarea>
+        </div>
+
+        <button
+          (click)="enviarResena()"
+          [disabled]="enviandoResena() || !nuevoComentario().trim()"
+          class="btn-secondary"
+        >
+          @if (enviandoResena()) {
+            Publicando...
+          } @else {
+            Publicar Opinión
+          }
+        </button>
+      </div>
+
+      <!-- Lista de reseñas -->
+      <div class="reviews-list">
+        @if (resenas().length === 0) {
+          <p class="no-reviews">Sé el primero en dejar una reseña para esta película.</p>
+        } @else {
+          @for (r of resenas(); track r.id || r.created_at) {
+            <div class="review-item">
+              <div class="review-item-header">
+                <span class="review-author">👤 {{ r.nombre_usuario }}</span>
+                <span class="review-stars">{{ '⭐'.repeat(r.calificacion) }}</span>
+              </div>
+              <p class="review-text">{{ r.comentario }}</p>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>

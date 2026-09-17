@@ -1,0 +1,104 @@
+<div class="proximamente-page container">
+  <!-- CABECERA -->
+  <div class="page-header">
+    <span class="badge badge-gold">🗓️ Calendario de Estrenos</span>
+    <h1>Próximamente en Pantalla Grande</h1>
+    <p>Conoce los títulos más esperados que llegarán a nuestras salas en las próximas semanas. Activa una alerta para ser el primero en comprar tu entrada en preventa.</p>
+  </div>
+
+  <!-- NOTIFICACIÓN FLOTANTE / TOAST -->
+  @if (feedbackMensaje()) {
+    <div class="feedback-toast">
+      {{ feedbackMensaje() }}
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando próximos estrenos...</p>
+    </div>
+  } @else if (peliculas().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🎥</span>
+      <h3>No hay estrenos programados por ahora</h3>
+      <p>Pronto anunciaremos nuevas fechas y preventas exclusivas.</p>
+    </div>
+  } @else {
+    <div class="releases-grid">
+      @for (pelicula of peliculas(); track pelicula.id) {
+        <div class="release-card">
+          <div class="poster-container">
+            <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" />
+            
+            <div class="release-badges">
+              <span class="badge badge-red">Estreno</span>
+              @if (pelicula.precio_preventa) {
+                <span class="badge badge-gold">Preventa Especial</span>
+              }
+            </div>
+          </div>
+
+          <div class="release-info">
+            <div class="release-header-row">
+              <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
+                {{ pelicula.clasificacion_edad }}
+              </span>
+              <span class="duration">⏱️ {{ pelicula.duracion_minutos }} min</span>
+            </div>
+
+            <h3 class="release-title">{{ pelicula.titulo }}</h3>
+            
+            <div class="genres-row">
+              @for (g of pelicula.generos; track g) {
+                <span class="genre-tag">{{ g }}</span>
+              }
+            </div>
+
+            <p class="release-synopsis">{{ pelicula.sinopsis }}</p>
+
+            <!-- Precios de Preventa vs Normal -->
+            <div class="pricing-card">
+              @if (pelicula.precio_preventa) {
+                <div class="price-item">
+                  <span class="price-title">Precio Preventa (7 días antes):</span>
+                  <span class="price-highlight">${{ pelicula.precio_preventa }}</span>
+                </div>
+                <div class="price-item normal-price">
+                  <span class="price-title">Precio en Taquilla:</span>
+                  <span class="price-strike">${{ pelicula.precio_normal }}</span>
+                </div>
+              } @else {
+                <div class="price-item">
+                  <span class="price-title">Precio Estreno:</span>
+                  <span class="price-highlight">${{ pelicula.precio_normal }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="card-actions">
+              <button
+                (click)="toggleAlerta(pelicula)"
+                class="btn-alert"
+                [class.active]="tieneAlerta(pelicula.id)"
+              >
+                @if (tieneAlerta(pelicula.id)) {
+                  ✅ Alerta Activa
+                } @else {
+                  🔔 Notificarme Estreno
+                }
+              </button>
+
+              @if (pelicula.precio_preventa) {
+                <a [routerLink]="['/pelicula', pelicula.id]" class="btn-primary btn-sm">
+                  🎟️ Comprar Preventa
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

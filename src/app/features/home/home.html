@@ -1,0 +1,143 @@
+<div class="home-container">
+  <!-- SECCIÓN HERO: TOP 3 MÁS VENDIDAS -->
+  @if (top3().length > 0) {
+    <section class="top-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge badge-red">⭐ Favoritas del público</span>
+          <h2 class="section-title">Top 3 Películas Más Vendidas</h2>
+        </div>
+
+        <div class="top-grid">
+          @for (pelicula of top3(); track pelicula.id; let i = $index) {
+            <div class="top-card">
+              <div class="top-rank-badge">#{{ i + 1 }}</div>
+              <div class="poster-wrapper">
+                <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" class="poster-img" />
+                <div class="poster-overlay">
+                  <a [routerLink]="['/pelicula', pelicula.id]" class="btn-primary">
+                    🎟️ Sacar Entradas
+                  </a>
+                </div>
+              </div>
+              <div class="card-details">
+                <div class="card-meta">
+                  <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
+                    {{ pelicula.clasificacion_edad }}
+                  </span>
+                  <span class="duration">⏱️ {{ pelicula.duracion_minutos }} min</span>
+                </div>
+                <h3 class="card-title">{{ pelicula.titulo }}</h3>
+                <div class="genres-list">
+                  @for (g of pelicula.generos; track g) {
+                    <span class="genre-pill">{{ g }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- SECCIÓN CARTELERA CON BUSCADOR Y FILTROS -->
+  <section class="catalog-section container">
+    <div class="catalog-header">
+      <div>
+        <h2 class="section-title">En Cartelera</h2>
+        <p class="section-subtitle">Explora los títulos disponibles en nuestras salas</p>
+      </div>
+
+      <!-- Buscador -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [ngModel]="busqueda()"
+          (ngModelChange)="busqueda.set($event)"
+          placeholder="Buscar película por título o sinopsis..."
+          class="search-input"
+        />
+      </div>
+    </div>
+
+    <!-- Filtro interactivo por Géneros -->
+    <div class="genre-filter-bar">
+      <span class="filter-label">Filtrar por género:</span>
+      <div class="genre-pills-container">
+        @for (g of generos(); track g) {
+          <button
+            (click)="setGenero(g)"
+            class="filter-pill"
+            [class.active]="generoSeleccionado() === g"
+          >
+            {{ g }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Feedback de carga / error -->
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando cartelera de estrenos...</p>
+      </div>
+    } @else if (errorMsg()) {
+      <div class="error-state">
+        <p>⚠️ {{ errorMsg() }}</p>
+      </div>
+    } @else if (peliculasFiltradas().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🎬</span>
+        <h3>No se encontraron películas</h3>
+        <p>Intenta con otra búsqueda o selecciona "Todos" en los géneros.</p>
+      </div>
+    } @else {
+      <!-- Grilla completa de Películas -->
+      <div class="movies-grid">
+        @for (pelicula of peliculasFiltradas(); track pelicula.id) {
+          <div class="movie-card">
+            <div class="movie-poster-box">
+              <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" loading="lazy" />
+              <div class="movie-hover-info">
+                <p class="movie-synopsis">{{ pelicula.sinopsis | slice: 0 : 120 }}...</p>
+                <a [routerLink]="['/pelicula', pelicula.id]" class="btn-primary btn-sm">
+                  Ver Funciones
+                </a>
+              </div>
+            </div>
+
+            <div class="movie-body">
+              <div class="card-meta">
+                <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
+                  {{ pelicula.clasificacion_edad }}
+                </span>
+                <span class="duration">⏱️ {{ pelicula.duracion_minutos }} min</span>
+              </div>
+
+              <h4 class="movie-title">{{ pelicula.titulo }}</h4>
+
+              <div class="movie-formats">
+                @for (fmt of pelicula.formatos; track fmt) {
+                  <span class="badge badge-blue">{{ fmt }}</span>
+                }
+                @for (lang of pelicula.idiomas; track lang) {
+                  <span class="format-pill">{{ lang }}</span>
+                }
+              </div>
+
+              <div class="movie-footer">
+                <span class="movie-price">Desde ${{ pelicula.precio_normal }}</span>
+                <a [routerLink]="['/pelicula', pelicula.id]" class="btn-buy">
+                  Entradas
+                </a>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>
