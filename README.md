@@ -64,12 +64,4 @@
 - [ ] **Hito 5 (Semana 20):** Despliegue en producción con soporte PWA, URL funcional, repositorio GitHub documentado y defensa oral.
 
 ---
-
-
-   npm start
-   # o bien: ng serve
-   ```
-   Abrir navegador en `http://localhost:4200/`.
-
----
 *Desarrollado con dedicación para Programación IV.*
