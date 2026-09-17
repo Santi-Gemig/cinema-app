@@ -1,0 +1,269 @@
+<div class="profile-page container">
+  <!-- CABECERA DEL PERFIL Y DATOS PERSONALES -->
+  <div class="profile-header-card">
+    <div class="profile-info-main">
+      <div class="profile-avatar">
+        <span>👤</span>
+      </div>
+      <div class="profile-titles">
+        <h1>{{ usuario()?.nombre }} {{ usuario()?.apellido }}</h1>
+        <p class="user-email">{{ usuario()?.email }}</p>
+        <div class="user-kpis">
+          <span class="badge badge-gold kpi-badge">
+            ⭐ {{ usuario()?.puntos || 0 }} Puntos de Fidelización
+          </span>
+          <span class="badge badge-green kpi-badge">
+            💳 ${{ usuario()?.credito || '0.00' }} Saldo a Favor / Crédito
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATOS EXCLUSIVOS REGISTRADOS (CONSIGNA DE CÁTEDRA) -->
+    <div class="profile-details-grid">
+      <div class="detail-item">
+        <span class="detail-label">🎂 Fecha de Nacimiento</span>
+        <span class="detail-val">{{ usuario()?.fecha_nacimiento || 'No registrada' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">🩸 Tipo de Sangre</span>
+        <span class="detail-val">{{ usuario()?.tipo_sangre || 'No registrado' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">👁️ Color de Ojos</span>
+        <span class="detail-val">{{ usuario()?.color_ojos || 'No registrado' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">🏖️ Vacaciones Anuales</span>
+        <span class="detail-val">{{ usuario()?.dias_vacaciones || 0 }} días / año</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES Y ALERTAS -->
+  @if (mensajeExito()) {
+    <div class="alert alert-success animate-fade">
+      🎉 {{ mensajeExito() }}
+    </div>
+  }
+  @if (errorMsg()) {
+    <div class="alert alert-danger animate-fade">
+      ⚠️ {{ errorMsg() }}
+    </div>
+  }
+
+  <!-- SECCIÓN: HISTORIAL DE PELÍCULAS Y ENTRADAS -->
+  <div class="history-section">
+    <div class="section-title">
+      <h2>🎬 Mi Historial de Películas y Entradas</h2>
+      <p>Consulta tus compras pasadas y futuras, presenta tu código QR o califica lo que viste</p>
+    </div>
+
+    @if (cargando()) {
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p>Cargando tu historial cinematográfico...</p>
+      </div>
+    } @else if (compras().length === 0) {
+      <div class="empty-history-card">
+        <span class="empty-icon">🎟️</span>
+        <h3>Aún no tienes entradas registradas</h3>
+        <p>Explora nuestra cartelera y reserva tus butacas favoritas en tiempo real.</p>
+        <a routerLink="/" class="btn-primary">Explorar Cartelera ➔</a>
+      </div>
+    } @else {
+      <div class="purchases-grid">
+        @for (compra of compras(); track compra.id) {
+          @let entrada = compra.entradas?.[0];
+          @let funcion = entrada?.funcion;
+          @let pelicula = funcion?.pelicula;
+          @let cancelable = puedeCancelar(funcion?.fecha_hora);
+
+          <div
+            class="purchase-card"
+            [class.card-canceled]="compra.estado === 'cancelada'"
+            appResaltar
+            [colorResaltado]="compra.estado === 'cancelada' ? 'rgba(100, 116, 139, 0.2)' : 'rgba(245, 197, 24, 0.2)'"
+          >
+            <!-- PÓSTER Y BADGES -->
+            <div class="movie-poster-box">
+              <img
+                [src]="pelicula?.imagen_url || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500'"
+                [alt]="pelicula?.titulo || 'Película'"
+              />
+              @if (compra.estado === 'cancelada') {
+                <span class="status-overlay-badge badge-canceled">CANCELADA</span>
+              } @else {
+                <span class="status-overlay-badge badge-active">CONFIRMADA</span>
+              }
+            </div>
+
+            <!-- CONTENIDO DE LA COMPRA -->
+            <div class="purchase-body">
+              <div class="purchase-header-row">
+                <span class="purchase-date">Comprado el {{ compra.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span class="purchase-code">Cód: <strong>{{ compra.qr_codigo }}</strong></span>
+              </div>
+
+              <h3 class="movie-title">{{ pelicula?.titulo || 'Entrada de Cine' }}</h3>
+
+              <div class="movie-meta-info">
+                <span>📍 {{ funcion?.sala?.nombre || 'Sala General' }}</span>
+                <span>🎞️ {{ funcion?.formato || '2D' }} • {{ funcion?.idioma || 'Castellano' }}</span>
+                <span>🕒 <strong>{{ funcion?.fecha_hora | date:'EEE dd/MM/yyyy HH:mm' }}</strong></span>
+              </div>
+
+              <!-- BUTACAS RESERVADAS -->
+              <div class="seats-list-box">
+                <span class="box-label">Butacas ({{ compra.entradas?.length || 0 }}):</span>
+                <div class="seats-badges">
+                  @for (e of (compra.entradas || []); track e.id) {
+                    <span class="seat-pill" [class.vip-pill]="e.tipo === 'vip'" [class.discap-pill]="e.tipo === 'discapacidad'">
+                      Fila {{ e.fila }}-{{ e.numero }}
+                      @if (e.tipo === 'vip') { ⭐ VIP }
+                      @if (e.tipo === 'discapacidad') { ♿ }
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- CANDY BAR ITEMS -->
+              @if ((compra.compras_candy_items?.length || 0) > 0) {
+                <div class="candy-items-box">
+                  <span class="box-label">Candy Bar:</span>
+                  <p>
+                    @for (c of (compra.compras_candy_items || []); track c.id) {
+                      <span>• {{ c.cantidad }}x {{ c.producto?.nombre || c.combo?.nombre }} </span>
+                    }
+                  </p>
+                </div>
+              }
+
+              <!-- TOTAL Y ESTADO DE CANCELACIÓN -->
+              <div class="purchase-pricing-row">
+                <div>
+                  <span class="total-label">Total Abonado:</span>
+                  <span class="total-val">${{ compra.total }}</span>
+                </div>
+                <div class="points-reward">
+                  <span>+{{ compra.puntos_ganados }} pts</span>
+                </div>
+              </div>
+
+              <!-- BOTONERA DE ACCIONES -->
+              <div class="card-actions">
+                @if (compra.estado !== 'cancelada') {
+                  <button (click)="verQR(compra)" class="btn-action btn-qr" title="Mostrar código QR en puerta">
+                    📱 Ver QR
+                  </button>
+                  <button (click)="descargarEntradaPDF(compra)" class="btn-action btn-pdf" title="Descargar ticket oficial en PDF">
+                    📥 PDF
+                  </button>
+                  <button (click)="abrirCalificacion(pelicula)" class="btn-action btn-rate" title="Dejar opinión con estrellas">
+                    ⭐ Calificar
+                  </button>
+
+                  <!-- BOTÓN DE CANCELACIÓN (REGLA DE LAS 2 HORAS) -->
+                  @if (cancelable) {
+                    <button
+                      (click)="confirmarCancelacion(compra, funcion?.fecha_hora)"
+                      class="btn-action btn-cancel"
+                      title="Cancelar y recibir crédito en cuenta"
+                    >
+                      🛑 Cancelar
+                    </button>
+                  } @else {
+                    <div class="cancel-notice" [title]="motivoNoCancelable(funcion?.fecha_hora)">
+                      🔒 Cancelación no disponible
+                    </div>
+                  }
+                } @else {
+                  <div class="refunded-notice">
+                    ✓ Reembolsado en crédito de cuenta
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- MODAL: VISOR DE CÓDIGO QR -->
+  @if (qrModalVisible()) {
+    <div class="modal-backdrop" (click)="cerrarQR()">
+      <div class="modal-box animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Código QR de Entrada</h3>
+          <button (click)="cerrarQR()" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body-qr">
+          @if (qrModalDataUrl()) {
+            <img [src]="qrModalDataUrl()" alt="QR Oficial" class="qr-img" />
+          }
+          <span class="qr-code-display">{{ qrModalCodigo() }}</span>
+          <p class="qr-instruction">
+            Presenta este código al ingresar a la sala y en la caja del Candy Bar. Válido por un solo uso para cada sector.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button (click)="descargarEntradaPDF(qrModalCompra()!)" class="btn-primary">
+            📥 Descargar Entrada Oficial (PDF)
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: CALIFICAR Y OPINAR -->
+  @if (modalCalificarVisible()) {
+    <div class="modal-backdrop" (click)="cerrarCalificacion()">
+      <div class="modal-box animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Calificar "{{ peliculaACalificar()?.titulo }}"</h3>
+          <button (click)="cerrarCalificacion()" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="rating-stars-input">
+            <label>Tu Puntuación:</label>
+            <div class="stars-picker">
+              @for (estrella of [1, 2, 3, 4, 5]; track estrella) {
+                <button
+                  type="button"
+                  (click)="estrellasSeleccionadas.set(estrella)"
+                  class="star-btn"
+                  [class.star-active]="estrella <= estrellasSeleccionadas()"
+                >
+                  ★
+                </button>
+              }
+              <span class="stars-label">{{ estrellasSeleccionadas() }} / 5 Estrellas</span>
+            </div>
+          </div>
+
+          <div class="rating-comment-input">
+            <label for="comentario">Tu opinión corta sobre la película:</label>
+            <textarea
+              id="comentario"
+              rows="3"
+              [(ngModel)]="comentarioResena"
+              placeholder="¿Qué te pareció la película? Deja tus comentarios..."
+              class="form-control"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="cerrarCalificacion()" class="btn-secondary">Cancelar</button>
+          <button (click)="guardarCalificacion()" [disabled]="enviandoResena()" class="btn-primary">
+            @if (enviandoResena()) {
+              Publicando...
+            } @else {
+              Publicar Reseña
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

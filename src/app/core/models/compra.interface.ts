@@ -35,6 +35,7 @@ export interface Compra {
   estado: 'completada' | 'cancelada';
   puntos_ganados: number;
   created_at: string;
-  entradas?: EntradaComprada[];
+  entradas?: any[];
   candy_items?: CompraItemCandy[];
+  compras_candy_items?: any[];
 }

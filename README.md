@@ -17,7 +17,8 @@
 - **Standalone Components & Modular Routing:** Componentes modernos sin `NgModule`, con carga perezosa (`lazy loading`) por rutas.
 - **Angular Signals:** Gestión del estado ultra-reactivo mediante `signal()`, `computed()` y `effect()`.
 - **Functional Route Guards:** Control de acceso basado en roles (`authGuard`, `adminGuard`, `empleadoGuard`) usando la función `inject()`.
-- **Directivas Estructurales Personalizadas:** Directiva `*appRole` para renderizado condicional según el rol del usuario.
+- [x] **Directivas Personalizadas:** Directiva estructural `*appRole` para control de roles y directiva de atributo `[appResaltar]` con `@HostListener`, `@HostBinding` y `Renderer2` (seguridad DOM y reactividad).
+- **Gestión de Memoria y Realtime:** Suscripciones a canales Supabase Realtime con desuscripción estricta en `ngOnDestroy` (`removeChannel`) para evitar memory leaks al navegar.
 - **Generación de Entradas:** Códigos QR dinámicos generados con `qrcode` y tickets digitales exportados del lado del cliente con `jspdf`.
 
 ### Backend & Persistencia (Supabase)
@@ -60,7 +61,7 @@
 - [x] **Hito 1 (Semana 3):** Requerimientos aprobados, modelo relacional en Supabase con RLS y estructura base en Angular 19.
 - [x] **Hito 2 (Semana 7):** Catálogo de cartelera, buscador multigénero, módulo de preventa y mapa interactivo de butacas con Realtime.
 - [x] **Hito 3 (Semana 11):** Checkout unificado (entradas + candy bar), generación de PDF con QR dinámico y módulo de validación para empleados.
-- [ ] **Hito 4 (Semana 15):** Panel de administración completo con asignación automática de salas (sin solapamientos y buffer de 30 min), reportes exportables a PDF/Excel, auditoría y módulo Mis Películas.
+- [x] **Hito 4 (Semana 15):** Panel de administración completo con asignación automática de salas (sin solapamientos y buffer de 30 min), reportes exportables a PDF/Excel, auditoría y módulo Mis Películas.
 - [ ] **Hito 5 (Semana 20):** Despliegue en producción con soporte PWA, URL funcional, repositorio GitHub documentado y defensa oral.
 
 ---

@@ -264,6 +264,36 @@ export class CompraService {
     doc.save(`Entrada_CinemaApp_${datos.qrCodigo}.pdf`);
   }
 
+  // Obtener historial completo de compras de un usuario para "Mis Películas"
+  async getComprasUsuario(usuarioId: string): Promise<Compra[]> {
+    const { data, error } = await this.supabase
+      .from('compras')
+      .select(`
+        *,
+        entradas:entradas(
+          *,
+          funcion:funciones(
+            *,
+            pelicula:peliculas(*),
+            sala:salas(*)
+          )
+        ),
+        compras_candy_items(
+          *,
+          producto:productos_candy(*),
+          combo:combos_especiales(*)
+        )
+      `)
+      .eq('usuario_id', usuarioId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener compras del usuario:', error);
+      return [];
+    }
+    return (data as Compra[]) || [];
+  }
+
   // Cancelar compra hasta 2 horas antes de la función (Requerimiento explícito)
   async cancelarCompra(compraId: string, funcionFechaHora: string): Promise<{ success: boolean; error?: string }> {
     const funcionTime = new Date(funcionFechaHora).getTime();
@@ -294,16 +324,31 @@ export class CompraService {
       .delete()
       .eq('compra_id', compraId);
 
-    // 3. Devolver el dinero como CRÉDITO en la cuenta (no efectivo/devolución bancaria)
+    // 3. Devolver el dinero como CRÉDITO en la cuenta (no efectivo) y registrar auditoría
     if (compra.usuario_id) {
       const userData = this.authService.currentUserData();
-      const creditoActual = userData?.credito || 0;
-      const nuevoCredito = creditoActual + compra.total;
+      const creditoActual = Number(userData?.credito || 0);
+      const puntosActuales = Number(userData?.puntos || 0);
+      const nuevoCredito = creditoActual + Number(compra.total);
+      const nuevosPuntos = Math.max(0, puntosActuales - Number(compra.puntos_ganados || 0));
 
       await this.supabase
         .from('usuarios')
-        .update({ credito: nuevoCredito })
+        .update({ credito: nuevoCredito, puntos: nuevosPuntos })
         .eq('id', compra.usuario_id);
+
+      // Registrar auditoría de la cancelación
+      await this.supabase.from('auditoria').insert({
+        usuario_id: compra.usuario_id,
+        usuario_email: compra.email_contacto,
+        accion: 'CANCELAR_COMPRA',
+        detalles: {
+          compra_id: compraId,
+          total_reembolsado: compra.total,
+          credito_asignado: nuevoCredito,
+          motivo: 'Cancelación solicitada con más de 2 horas de anticipación'
+        }
+      });
 
       await this.authService.loadUserData(compra.usuario_id);
     }

@@ -138,6 +138,19 @@ export class AuthService {
     return { data: authData, error: null };
   }
 
+  async cambiarRol(nuevoRol: UserRole) {
+    const user = this.currentUser();
+    if (user) {
+      await this.supabase.from('usuarios').update({ rol: nuevoRol }).eq('id', user.id);
+      await this.loadUserData(user.id);
+    } else {
+      const curr = this.currentUserData();
+      if (curr) {
+        this.currentUserData.set({ ...curr, rol: nuevoRol });
+      }
+    }
+  }
+
   async logout() {
     const { error } = await this.supabase.auth.signOut();
     this.currentUser.set(null);

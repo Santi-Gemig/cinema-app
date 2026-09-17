@@ -75,6 +75,13 @@ export class FuncionService {
     return canal;
   }
 
+  // Desuscribir canal y liberar WebSocket para prevenir memory leaks (Clase 6 - Diapositiva 10)
+  desuscribirCanal(canal: any) {
+    if (canal) {
+      this.supabase.removeChannel(canal);
+    }
+  }
+
   // Generador de la sala física inmutable (Regla del TP):
   // 20 filas (A a T), 3 columnas de 4, 20 y 4 butacas.
   // Filas J y K adaptadas para discapacidad (2, 10 y 2).

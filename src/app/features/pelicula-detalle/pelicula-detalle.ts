@@ -111,7 +111,7 @@ export class PeliculaDetalleComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.realtimeCanal) {
-      this.realtimeCanal.unsubscribe();
+      this.funcionService.desuscribirCanal(this.realtimeCanal);
     }
   }
 

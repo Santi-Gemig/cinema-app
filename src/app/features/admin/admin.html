@@ -1,0 +1,810 @@
+<div class="admin-page container">
+  <!-- ENCABEZADO DEL PANEL -->
+  <div class="admin-header-card">
+    <div class="admin-header-titles">
+      <span class="badge badge-red admin-badge">Zona de Gestión</span>
+      <h1>⚙️ Panel de Administración General</h1>
+      <p>Gestión de salas sin solapamientos, reportes ejecutivos y monitoreo en tiempo real</p>
+    </div>
+
+    <!-- NAVEGACIÓN POR PESTAÑAS -->
+    <div class="admin-tabs">
+      <button
+        (click)="tabActiva.set('dashboard')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'dashboard'"
+      >
+        📊 Finanzas y Reportes
+      </button>
+      <button
+        (click)="tabActiva.set('funciones')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'funciones'"
+      >
+        🕒 Asignación de Salas
+      </button>
+      <button
+        (click)="tabActiva.set('peliculas')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'peliculas'"
+      >
+        🎬 Películas y Cartelera
+      </button>
+      <button
+        (click)="tabActiva.set('candy')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'candy'"
+      >
+        🍿 Candy Bar y Combos
+      </button>
+      <button
+        (click)="tabActiva.set('cupones')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'cupones'"
+      >
+        🏷️ Cupones
+      </button>
+      <button
+        (click)="tabActiva.set('auditoria')"
+        class="tab-btn"
+        [class.tab-active]="tabActiva() === 'auditoria'"
+      >
+        📜 Auditoría en Vivo
+      </button>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES -->
+  @if (mensajeExito()) {
+    <div class="alert alert-success animate-fade">
+      🎉 {{ mensajeExito() }}
+    </div>
+  }
+  @if (errorMsg()) {
+    <div class="alert alert-danger animate-fade">
+      ⚠️ {{ errorMsg() }}
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 1: DASHBOARD Y ANALÍTICAS FINANCIERAS         -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'dashboard') {
+    <div class="tab-content animate-fade">
+      <!-- TARJETAS KPIS -->
+      <div class="kpi-grid">
+        <div class="kpi-card" appResaltar [colorResaltado]="'rgba(34, 197, 94, 0.2)'">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-info">
+            <span class="kpi-title">Recaudación Total</span>
+            <strong class="kpi-value text-green">${{ reporte().totalFacturado | number }}</strong>
+            <span class="kpi-sub">Ingresos acumulados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" appResaltar [colorResaltado]="'rgba(245, 197, 24, 0.2)'">
+          <div class="kpi-icon">📅</div>
+          <div class="kpi-info">
+            <span class="kpi-title">Facturación de Hoy</span>
+            <strong class="kpi-value text-gold">${{ reporte().facturacionHoy | number }}</strong>
+            <span class="kpi-sub">Ventas del día actual</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" appResaltar [colorResaltado]="'rgba(56, 189, 248, 0.2)'">
+          <div class="kpi-icon">🎟️</div>
+          <div class="kpi-info">
+            <span class="kpi-title">Entradas Vendidas</span>
+            <strong class="kpi-value text-blue">{{ reporte().totalEntradasVendidas }} butacas</strong>
+            <span class="kpi-sub">Total emitidas</span>
+          </div>
+        </div>
+
+        <div class="kpi-card" appResaltar [colorResaltado]="'rgba(229, 9, 20, 0.2)'">
+          <div class="kpi-icon">🍿</div>
+          <div class="kpi-info">
+            <span class="kpi-title">Candy Bar & Combos</span>
+            <strong class="kpi-value text-red">{{ reporte().totalCandyVendidos }} items</strong>
+            <span class="kpi-sub">Snacks entregados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTONES DE EXPORTACIÓN (REQUERIMIENTO EXPLÍCITO DE CONSIGNA) -->
+      <div class="export-banner-card">
+        <div class="export-texts">
+          <h3>Descarga de Informes Financieros</h3>
+          <p>Exporta el estado de ventas y facturación para contabilidad y gerencia en formatos estándar.</p>
+        </div>
+        <div class="export-buttons">
+          <button (click)="descargarReportePDF()" [disabled]="cargando()" class="btn-export btn-pdf">
+            📄 Exportar Reporte a PDF
+          </button>
+          <button (click)="descargarReporteExcel()" [disabled]="cargando()" class="btn-export btn-excel">
+            📊 Exportar a Excel (CSV)
+          </button>
+        </div>
+      </div>
+
+      <!-- GRÁFICOS DE ANALÍTICAS -->
+      <div class="analytics-layout">
+        <!-- GRÁFICO 1: PELÍCULAS MÁS VISTAS -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Películas Más Vistas (Ranking Taquilla)</h3>
+              <p>Volumen de entradas vendidas por título</p>
+            </div>
+            <div class="period-toggle">
+              <button
+                (click)="cambiarPeriodoRanking('semana')"
+                [class.period-active]="periodoRanking() === 'semana'"
+                class="period-btn"
+              >
+                Semanal
+              </button>
+              <button
+                (click)="cambiarPeriodoRanking('mes')"
+                [class.period-active]="periodoRanking() === 'mes'"
+                class="period-btn"
+              >
+                Mensual
+              </button>
+            </div>
+          </div>
+
+          <div class="bars-container">
+            @for (p of rankingPeliculas(); track p.peliculaId) {
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span class="bar-name">{{ p.titulo }}</span>
+                  <span class="bar-count"><strong>{{ p.entradasVendidas }}</strong> entradas (${{ p.totalRecaudado | number }})</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill bar-fill-red"
+                    [style.width.%]="p.entradasVendidas > 0 ? (p.entradasVendidas * 10) : 5"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- GRÁFICO 2: PRODUCTO DE CANDY BAR MÁS VENDIDO -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Snacks y Candy Bar Líderes</h3>
+              <p>Productos con mayor demanda en el mostrador</p>
+            </div>
+            <span class="badge badge-gold">Top Ventas</span>
+          </div>
+
+          <div class="bars-container">
+            @for (c of rankingCandy(); track c.nombre) {
+              <div class="bar-row">
+                <div class="bar-meta">
+                  <span class="bar-name">{{ c.nombre }}</span>
+                  <span class="bar-count"><strong>{{ c.cantidadVendida }}</strong> unid. (${{ c.totalRecaudado | number }})</span>
+                </div>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill bar-fill-gold"
+                    [style.width.%]="c.cantidadVendida > 0 ? (c.cantidadVendida * 8) : 5"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 2: ASIGNACIÓN AUTOMÁTICA DE SALAS             -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'funciones') {
+    <div class="tab-content animate-fade">
+      <!-- FORMULARIO DE PROGRAMACIÓN AUTOMÁTICA -->
+      <div class="scheduler-card">
+        <div class="scheduler-header">
+          <span class="badge badge-gold">Motor Inteligente</span>
+          <h2>Programar Función con Asignación Automática</h2>
+          <p class="scheduler-rule-note">
+            ⚠️ <strong>Regla Inquebrantable de Negocio:</strong> El sistema evalúa todas las salas y asigna de forma automática la primera disponible, verificando que no haya funciones solapadas y garantizando el <strong>buffer obligatorio de 30 minutos de limpieza</strong> entre funciones.
+          </p>
+        </div>
+
+        <!-- PREAJUSTES RÁPIDOS DE HORARIOS -->
+        <div class="quick-presets">
+          <span class="presets-label">⚡ Preajustes Rápidos:</span>
+          <button (click)="aplicarPreajuste(0, '18:00')" class="btn-preset">Hoy 18:00</button>
+          <button (click)="aplicarPreajuste(0, '21:00')" class="btn-preset">Hoy 21:00</button>
+          <button (click)="aplicarPreajuste(1, '18:00')" class="btn-preset">Mañana 18:00</button>
+          <button (click)="aplicarPreajuste(1, '21:30')" class="btn-preset">Mañana 21:30</button>
+          <button (click)="aplicarPreajuste(2, '19:00')" class="btn-preset">Viernes 19:00</button>
+          <button (click)="aplicarPreajuste(3, '20:30')" class="btn-preset">Sábado 20:30</button>
+        </div>
+
+        <div class="scheduler-form-grid">
+          <div class="form-group">
+            <label for="peliculaSelect">Película</label>
+            <select
+              id="peliculaSelect"
+              [ngModel]="peliculaSeleccionadaId()"
+              (ngModelChange)="peliculaSeleccionadaId.set($event); salaAsignada.set(null); conflictoSalaError.set(null)"
+              class="form-control"
+            >
+              @for (p of peliculasLista(); track p.id) {
+                <option [value]="p.id">{{ p.titulo }} ({{ p.duracion_minutos }} min)</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fechaInput">Fecha de Proyección</label>
+            <input
+              id="fechaInput"
+              type="date"
+              [ngModel]="fechaProgramar()"
+              (ngModelChange)="fechaProgramar.set($event); salaAsignada.set(null); conflictoSalaError.set(null)"
+              class="form-control"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="horaInput">Hora de Inicio</label>
+            <input
+              id="horaInput"
+              type="time"
+              [ngModel]="horaProgramar()"
+              (ngModelChange)="horaProgramar.set($event); salaAsignada.set(null); conflictoSalaError.set(null)"
+              class="form-control"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="formatoSelect">Formato</label>
+            <select
+              id="formatoSelect"
+              [ngModel]="formatoProgramar()"
+              (ngModelChange)="formatoProgramar.set($event)"
+              class="form-control"
+            >
+              <option value="2D">2D Digital</option>
+              <option value="3D">3D Láser</option>
+              <option value="4D">4D E-Motion</option>
+              <option value="IMAX">IMAX Atmos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="idiomaSelect">Idioma</label>
+            <select
+              id="idiomaSelect"
+              [ngModel]="idiomaProgramar()"
+              (ngModelChange)="idiomaProgramar.set($event)"
+              class="form-control"
+            >
+              <option value="Castellano">Castellano</option>
+              <option value="Subtitulada">Subtitulada</option>
+              <option value="Original">Idioma Original</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="precioInput">Precio Base (ARS)</label>
+            <input
+              id="precioInput"
+              type="number"
+              [ngModel]="precioBaseProgramar()"
+              (ngModelChange)="precioBaseProgramar.set($event)"
+              class="form-control"
+              step="500"
+            />
+          </div>
+        </div>
+
+        <!-- ACCIONES DE VERIFICACIÓN AUTOMÁTICA -->
+        <div class="auto-assign-action-box">
+          <button
+            (click)="verificarYAsignarSala()"
+            [disabled]="verificandoSala()"
+            class="btn-secondary btn-auto-check"
+          >
+            @if (verificandoSala()) {
+              Buscando sala disponible...
+            } @else {
+              🔍 Verificar Disponibilidad y Asignar Sala
+            }
+          </button>
+
+          <!-- RESULTADO EXITOSO DE LA AUTOASIGNACIÓN -->
+          @if (salaAsignada()) {
+            <div class="assigned-room-box animate-pop">
+              <div class="assigned-room-title">
+                <span class="room-icon">🏛️</span>
+                <div>
+                  <h4>{{ salaAsignada().nombre }} Asignada Automáticamente</h4>
+                  <p class="room-time-range">
+                    Horario ocupado con 30 min de limpieza:
+                    <strong>{{ fechaProgramar() }} {{ horaProgramar() }}</strong> hasta 
+                    <strong>{{ fechaHoraFinAsignada() | date:'HH:mm' }} hs</strong>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                (click)="confirmarProgramacionFuncion()"
+                [disabled]="programandoFuncion()"
+                class="btn-primary btn-confirm-function"
+              >
+                @if (programandoFuncion()) {
+                  Confirmando...
+                } @else {
+                  ✓ Confirmar y Publicar Función
+                }
+              </button>
+            </div>
+          }
+
+          <!-- RESULTADO DE CONFLICTO -->
+          @if (conflictoSalaError()) {
+            <div class="room-conflict-alert animate-pop">
+              <span>⚠️</span>
+              <div>
+                <strong>Conflicto de Horario Detectado:</strong>
+                <p>{{ conflictoSalaError() }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- LISTADO DE FUNCIONES PROGRAMADAS -->
+      <div class="scheduled-functions-section">
+        <h3>Funciones Actualmente Programadas en Cartelera ({{ funciones().length }})</h3>
+
+        <div class="functions-table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Película</th>
+                <th>Sala Asignada</th>
+                <th>Fecha y Hora</th>
+                <th>Fin (+30 min limpieza)</th>
+                <th>Formato</th>
+                <th>Idioma</th>
+                <th>Precio Base</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of funciones(); track f.id) {
+                <tr>
+                  <td><strong>{{ f.pelicula?.titulo }}</strong></td>
+                  <td>
+                    <span class="badge badge-blue">{{ f.sala?.nombre }}</span>
+                  </td>
+                  <td>{{ f.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="text-muted">{{ f.fecha_hora_fin | date:'HH:mm' }}</td>
+                  <td><span class="badge">{{ f.formato }}</span></td>
+                  <td>{{ f.idioma }}</td>
+                  <td class="text-gold"><strong>${{ f.precio_base }}</strong></td>
+                  <td>
+                    <button (click)="eliminarFuncion(f.id)" class="btn-delete-sm" title="Eliminar función">
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 3: GESTIÓN DE PELÍCULAS Y CARTELERA           -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'peliculas') {
+    <div class="tab-content animate-fade">
+      <div class="content-header-row">
+        <div>
+          <h2>Catálogo de Películas y Preventas</h2>
+          <p>Modifica precios, configura estrenos con preventa anticipada o activa películas en cartelera</p>
+        </div>
+        <button (click)="abrirModalPelicula()" class="btn-primary">
+          + Agregar Nueva Película
+        </button>
+      </div>
+
+      <div class="movies-admin-grid">
+        @for (p of peliculasLista(); track p.id) {
+          <div class="movie-admin-card" appResaltar>
+            <img [src]="p.imagen_url" [alt]="p.titulo" class="movie-admin-img" />
+            <div class="movie-admin-body">
+              <div class="movie-badge-row">
+                <span class="badge" [class.badge-red]="p.clasificacion_edad === '+18'" [class.badge-blue]="p.clasificacion_edad === 'ATP'">
+                  {{ p.clasificacion_edad }}
+                </span>
+                @if (p.en_cartelera) {
+                  <span class="badge badge-green">En Cartelera</span>
+                }
+                @if (p.es_estreno) {
+                  <span class="badge badge-gold">Próximamente / Preventa</span>
+                }
+              </div>
+
+              <h3>{{ p.titulo }}</h3>
+              <p class="movie-admin-duration">⏱️ {{ p.duracion_minutos }} min • {{ (p.generos || []).join(', ') }}</p>
+
+              <div class="movie-price-tags">
+                <div>
+                  <span class="price-lbl">Precio Normal:</span>
+                  <span class="price-val">${{ p.precio_normal }}</span>
+                </div>
+                @if (p.precio_preventa) {
+                  <div>
+                    <span class="price-lbl">Preventa:</span>
+                    <span class="price-val text-gold">${{ p.precio_preventa }}</span>
+                  </div>
+                }
+              </div>
+
+              <button (click)="abrirModalPelicula(p)" class="btn-secondary btn-block">
+                ✏️ Editar Información y Precios
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 4: CANDY BAR Y COMBOS ESPECIALES              -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'candy') {
+    <div class="tab-content animate-fade">
+      <!-- SECCIÓN COMBOS ESPECIALES -->
+      <div class="content-header-row">
+        <div>
+          <h2>Combos Especiales Destacados</h2>
+          <p>Combos configurables con entrada incluida a precio fijo (Requerimiento explícito de consigna)</p>
+        </div>
+        <button (click)="abrirModalCombo()" class="btn-primary">
+          + Crear Combo Especial
+        </button>
+      </div>
+
+      <div class="candy-cards-grid">
+        @for (cmb of combosEspeciales(); track cmb.id) {
+          <div class="candy-item-card" appResaltar>
+            <div class="candy-card-header">
+              <span class="badge badge-gold">Combo con Entrada</span>
+              <strong class="item-price">${{ cmb.precio }}</strong>
+            </div>
+            <h3>{{ cmb.nombre }}</h3>
+            <p class="candy-desc">{{ cmb.descripcion }}</p>
+            <button (click)="abrirModalCombo(cmb)" class="btn-secondary btn-block">
+              ✏️ Editar Combo
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- SECCIÓN PRODUCTOS INDIVIDUALES -->
+      <div class="content-header-row" style="margin-top: 3rem;">
+        <div>
+          <h2>Productos Individuales de Candy Bar</h2>
+          <p>Pochoclos, bebidas y golosinas con sus puntos requeridos para canje</p>
+        </div>
+        <button (click)="abrirModalCandy()" class="btn-primary">
+          + Agregar Producto Candy
+        </button>
+      </div>
+
+      <div class="candy-cards-grid">
+        @for (prod of productosCandy(); track prod.id) {
+          <div class="candy-item-card" appResaltar>
+            <div class="candy-card-header">
+              <span class="badge">{{ prod.categoria | uppercase }}</span>
+              <strong class="item-price">${{ prod.precio }}</strong>
+            </div>
+            <h3>{{ prod.nombre }}</h3>
+            <p class="candy-desc">{{ prod.descripcion }}</p>
+            <div class="candy-points-cost">
+              <span>⭐ Canjeable por: <strong>{{ prod.puntos_canje }} pts</strong></span>
+            </div>
+            <button (click)="abrirModalCandy(prod)" class="btn-secondary btn-block">
+              ✏️ Editar Producto
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 5: CUPONES DE DESCUENTO                       -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'cupones') {
+    <div class="tab-content animate-fade">
+      <div class="content-header-row">
+        <div>
+          <h2>Gestión de Cupones de Descuento</h2>
+          <p>Configura el porcentaje de primera compra o activa cupones exclusivos para mayores de 50 años</p>
+        </div>
+        <button (click)="abrirModalCupon()" class="btn-primary">
+          + Crear Nuevo Cupón
+        </button>
+      </div>
+
+      <div class="coupons-grid">
+        @for (c of cupones(); track c.id) {
+          <div class="coupon-admin-card" appResaltar>
+            <div class="coupon-header">
+              <span class="coupon-code">{{ c.codigo }}</span>
+              <span class="coupon-pct">{{ c.porcentaje_descuento }}% OFF</span>
+            </div>
+            <p class="coupon-desc">{{ c.descripcion }}</p>
+
+            <div class="coupon-conditions">
+              @if (c.primera_compra) {
+                <span class="badge badge-gold">✓ Exclusivo Primera Compra</span>
+              }
+              @if (c.solo_mayores_50) {
+                <span class="badge badge-blue">✓ Solo Mayores de 50 Años</span>
+              }
+              @if (c.activo) {
+                <span class="badge badge-green">Activo</span>
+              } @else {
+                <span class="badge badge-red">Inactivo</span>
+              }
+            </div>
+
+            <button (click)="abrirModalCupon(c)" class="btn-secondary btn-block">
+              ✏️ Modificar Porcentaje / Estado
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- PESTAÑA 6: AUDITORÍA EN TIEMPO REAL (CLASE 6)         -->
+  <!-- ===================================================== -->
+  @if (tabActiva() === 'auditoria') {
+    <div class="tab-content animate-fade">
+      <div class="content-header-row">
+        <div>
+          <h2>Log de Auditoría en Tiempo Real (Supabase Realtime)</h2>
+          <p>Registro inmutable de creación de funciones, cambios de precios y validación de entradas con fecha y hora</p>
+        </div>
+        <div class="live-indicator">
+          <span class="pulsing-dot"></span>
+          <span>Escuchando eventos en vivo</span>
+        </div>
+      </div>
+
+      <div class="functions-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Fecha y Hora</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Detalles de la Operación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logsAuditoria(); track log.id) {
+              <tr>
+                <td class="text-muted">{{ log.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                <td><strong>{{ log.usuario_email || 'Sistema' }}</strong></td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.badge-gold]="log.accion.includes('CREAR')"
+                    [class.badge-blue]="log.accion.includes('VALIDAR')"
+                    [class.badge-red]="log.accion.includes('CANCELAR') || log.accion.includes('ELIMINAR')"
+                  >
+                    {{ log.accion }}
+                  </span>
+                </td>
+                <td class="audit-details-cell">
+                  <code>{{ log.detalles | json }}</code>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ===================================================== -->
+  <!-- MODALES DE EDICIÓN                                    -->
+  <!-- ===================================================== -->
+
+  <!-- MODAL PELÍCULA -->
+  @if (modalPeliculaVisible()) {
+    <div class="modal-backdrop" (click)="modalPeliculaVisible.set(false)">
+      <div class="modal-box modal-large animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ peliculaEnEdicion().id ? 'Editar Película' : 'Nueva Película' }}</h3>
+          <button (click)="modalPeliculaVisible.set(false)" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body form-grid-2">
+          <div class="form-group col-full">
+            <label>Título de la Película</label>
+            <input type="text" [(ngModel)]="peliculaEnEdicion().titulo" class="form-control" />
+          </div>
+          <div class="form-group col-full">
+            <label>Sinopsis</label>
+            <textarea rows="3" [(ngModel)]="peliculaEnEdicion().sinopsis" class="form-control"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Duración (Minutos)</label>
+            <input type="number" [(ngModel)]="peliculaEnEdicion().duracion_minutos" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Clasificación</label>
+            <select [(ngModel)]="peliculaEnEdicion().clasificacion_edad" class="form-control">
+              <option value="ATP">ATP</option>
+              <option value="+13">+13</option>
+              <option value="+18">+18</option>
+            </select>
+          </div>
+          <div class="form-group col-full">
+            <label>URL Imagen Póster</label>
+            <input type="text" [(ngModel)]="peliculaEnEdicion().imagen_url" class="form-control" />
+          </div>
+          <div class="form-group col-full">
+            <label>Géneros (separados por coma)</label>
+            <input type="text" [ngModel]="generoInput()" (ngModelChange)="generoInput.set($event)" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Precio Entrada Normal (ARS)</label>
+            <input type="number" [(ngModel)]="peliculaEnEdicion().precio_normal" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Precio Preventa (ARS)</label>
+            <input type="number" [(ngModel)]="peliculaEnEdicion().precio_preventa" class="form-control" />
+          </div>
+          <div class="form-group col-full flags-row">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="peliculaEnEdicion().en_cartelera" />
+              <span>Visible en Cartelera</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="peliculaEnEdicion().es_estreno" />
+              <span>Próximamente / Preventa</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="modalPeliculaVisible.set(false)" class="btn-secondary">Cancelar</button>
+          <button (click)="guardarPelicula()" [disabled]="cargando()" class="btn-primary">Guardar Película</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL CANDY -->
+  @if (modalCandyVisible()) {
+    <div class="modal-backdrop" (click)="modalCandyVisible.set(false)">
+      <div class="modal-box animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ itemCandyEnEdicion().id ? 'Editar Producto' : 'Nuevo Producto' }}</h3>
+          <button (click)="modalCandyVisible.set(false)" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nombre del Producto</label>
+            <input type="text" [(ngModel)]="itemCandyEnEdicion().nombre" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <select [(ngModel)]="itemCandyEnEdicion().categoria" class="form-control">
+              <option value="pochoclos">Pochoclos</option>
+              <option value="bebidas">Bebidas</option>
+              <option value="golosinas">Golosinas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Precio (ARS)</label>
+            <input type="number" [(ngModel)]="itemCandyEnEdicion().precio" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Puntos Requeridos para Canje (Fidelización)</label>
+            <input type="number" [(ngModel)]="itemCandyEnEdicion().puntos_canje" class="form-control" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="modalCandyVisible.set(false)" class="btn-secondary">Cancelar</button>
+          <button (click)="guardarCandy()" [disabled]="cargando()" class="btn-primary">Guardar Producto</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL COMBO ESPECIAL -->
+  @if (modalComboVisible()) {
+    <div class="modal-backdrop" (click)="modalComboVisible.set(false)">
+      <div class="modal-box animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ comboEnEdicion().id ? 'Editar Combo Especial' : 'Nuevo Combo Especial' }}</h3>
+          <button (click)="modalComboVisible.set(false)" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nombre del Combo</label>
+            <input type="text" [(ngModel)]="comboEnEdicion().nombre" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Descripción (Ej: 1 Entrada + Pochoclos + Gaseosa)</label>
+            <input type="text" [(ngModel)]="comboEnEdicion().descripcion" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Precio Fijo del Combo (ARS)</label>
+            <input type="number" [(ngModel)]="comboEnEdicion().precio" class="form-control" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="modalComboVisible.set(false)" class="btn-secondary">Cancelar</button>
+          <button (click)="guardarCombo()" [disabled]="cargando()" class="btn-primary">Guardar Combo</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL CUPÓN -->
+  @if (modalCuponVisible()) {
+    <div class="modal-backdrop" (click)="modalCuponVisible.set(false)">
+      <div class="modal-box animate-pop" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ cuponEnEdicion().id ? 'Modificar Cupón' : 'Nuevo Cupón' }}</h3>
+          <button (click)="modalCuponVisible.set(false)" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Código del Cupón</label>
+            <input type="text" [(ngModel)]="cuponEnEdicion().codigo" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Porcentaje de Descuento (%)</label>
+            <input type="number" [(ngModel)]="cuponEnEdicion().porcentaje_descuento" class="form-control" min="1" max="100" />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" [(ngModel)]="cuponEnEdicion().descripcion" class="form-control" />
+          </div>
+          <div class="form-group flags-row">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="cuponEnEdicion().primera_compra" />
+              <span>Solo Primera Compra</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="cuponEnEdicion().solo_mayores_50" />
+              <span>Exclusivo Mayores de 50 años</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="cuponEnEdicion().activo" />
+              <span>Activo</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="modalCuponVisible.set(false)" class="btn-secondary">Cancelar</button>
+          <button (click)="guardarCupon()" [disabled]="cargando()" class="btn-primary">Guardar Cupón</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
