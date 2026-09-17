@@ -65,24 +65,7 @@
 
 ---
 
-## 💻 Instalación y Ejecución Local
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/Santi-Gemig/cinema-app.git
-   cd cinema-app
-   ```
-
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno:**
-   Verificar credenciales de Supabase en `src/environments/environment.ts`.
-
-4. **Iniciar servidor de desarrollo:**
-   ```bash
    npm start
    # o bien: ng serve
    ```
