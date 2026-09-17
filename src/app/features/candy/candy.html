@@ -1,0 +1,138 @@
+<div class="candy-page container">
+  <!-- ENCABEZADO -->
+  <div class="candy-hero">
+    <div class="candy-hero-text">
+      <span class="badge badge-gold">🍿 Candy Bar & Combos</span>
+      <h1>Snacks, Pochoclos y Bebidas</h1>
+      <p>Acompaña tu función con las mejores delicias recién preparadas. Retira todo en el Candy Bar con el mismo QR de tu entrada.</p>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE COMBOS ESPECIALES DESTACADOS (Requerimiento de la consigna) -->
+  @if (combos().length > 0) {
+    <section class="combos-section">
+      <div class="section-title-box">
+        <span class="badge badge-red">🔥 Ofertas Imperdibles</span>
+        <h2>Combos Especiales</h2>
+        <p>Ahorra comprando tus entradas y snacks juntos a precio fijo promocional</p>
+      </div>
+
+      <div class="combos-grid">
+        @for (combo of combos(); track combo.id) {
+          <div class="combo-card">
+            @if (combo.imagen_url) {
+              <div class="combo-img-wrapper">
+                <img [src]="combo.imagen_url" [alt]="combo.nombre" />
+                <span class="badge badge-gold promo-tag">Incluye Entrada</span>
+              </div>
+            }
+            <div class="combo-info">
+              <h3>{{ combo.nombre }}</h3>
+              <p class="combo-desc">{{ combo.descripcion }}</p>
+              
+              <div class="combo-footer">
+                <div class="price-box">
+                  <span class="price-label">Precio Combo</span>
+                  <span class="price-val">${{ combo.precio }}</span>
+                </div>
+
+                <div class="action-box">
+                  @if (getComboCantidadEnCarrito(combo.id) > 0) {
+                    <div class="counter-box">
+                      <button (click)="cartService.removeCombo(combo.id)" class="btn-qty">-</button>
+                      <span class="qty-num">{{ getComboCantidadEnCarrito(combo.id) }}</span>
+                      <button (click)="cartService.addCombo(combo)" class="btn-qty">+</button>
+                    </div>
+                  } @else {
+                    <button (click)="cartService.addCombo(combo)" class="btn-primary btn-sm">
+                      + Agregar
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- CATEGORÍAS DE PRODUCTOS -->
+  <div class="categories-bar">
+    <span class="cat-label">Categorías:</span>
+    <div class="cat-buttons">
+      @for (cat of categorias; track cat) {
+        <button
+          (click)="setCategoria(cat)"
+          class="cat-pill"
+          [class.active]="categoriaSeleccionada() === cat"
+        >
+          {{ cat | titlecase }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- PRODUCTOS INDIVIDUALES -->
+  @if (cargando()) {
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p>Cargando delicias del Candy Bar...</p>
+    </div>
+  } @else {
+    <div class="products-grid">
+      @for (prod of productosFiltrados(); track prod.id) {
+        <div class="product-card">
+          <div class="product-img-box">
+            <img [src]="prod.imagen_url || 'https://images.unsplash.com/photo-1572177812156-58036aae439c?w=500'" [alt]="prod.nombre" />
+            <span class="badge badge-gold points-badge" title="Puntos requeridos para canjear gratis">
+              ⭐ {{ prod.puntos_canje }} pts
+            </span>
+          </div>
+
+          <div class="product-content">
+            <div class="product-meta">
+              <span class="category-name">{{ prod.categoria | uppercase }}</span>
+            </div>
+            <h4>{{ prod.nombre }}</h4>
+            <p class="product-desc">{{ prod.descripcion }}</p>
+
+            <div class="product-bottom">
+              <div class="product-price">${{ prod.precio }}</div>
+
+              <div class="cart-actions">
+                @if (getCantidadEnCarrito(prod.id) > 0) {
+                  <div class="counter-box">
+                    <button (click)="cartService.removeCandy(prod.id)" class="btn-qty">-</button>
+                    <span class="qty-num">{{ getCantidadEnCarrito(prod.id) }}</span>
+                    <button (click)="cartService.addCandy(prod)" class="btn-qty">+</button>
+                  </div>
+                } @else {
+                  <button (click)="cartService.addCandy(prod)" class="btn-add">
+                    + Agregar
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- BARRA FLOTANTE RESUMEN DEL CARRITO (Si hay productos) -->
+  @if (cartService.totalItemsCount() > 0) {
+    <div class="cart-summary-bar">
+      <div class="cart-summary-info">
+        <span class="cart-icon">🛒</span>
+        <div>
+          <strong>{{ cartService.totalItemsCount() }} items en tu pedido</strong>
+          <p class="cart-total-text">Total: <span>${{ cartService.totalGeneral() }}</span></p>
+        </div>
+      </div>
+      <a routerLink="/checkout" class="btn-primary">
+        Ir al Pago / Checkout ➔
+      </a>
+    </div>
+  }
+</div>

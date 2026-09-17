@@ -1,0 +1,143 @@
+<div class="auth-wrapper">
+  <div class="auth-card register-card">
+    <div class="auth-header">
+      <span class="auth-icon">🎬</span>
+      <h2>Crear Cuenta de Cliente</h2>
+      <p>Completa tus datos para disfrutar de beneficios exclusivos y acumular puntos</p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-danger">
+        ⚠️ {{ errorMsg() }}
+      </div>
+    }
+
+    @if (registroExitoso()) {
+      <div class="alert alert-success">
+        🎉 ¡Cuenta creada con éxito! Se aplicó tu cupón del 20% en primera compra. Redirigiendo...
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Nombre y Apellido -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre</label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            placeholder="Ej. Juan"
+            class="form-control"
+            [class.is-invalid]="form.get('nombre')?.touched && form.get('nombre')?.invalid"
+          />
+        </div>
+        <div class="form-group">
+          <label for="apellido">Apellido</label>
+          <input
+            id="apellido"
+            type="text"
+            formControlName="apellido"
+            placeholder="Ej. Pérez"
+            class="form-control"
+            [class.is-invalid]="form.get('apellido')?.touched && form.get('apellido')?.invalid"
+          />
+        </div>
+      </div>
+
+      <!-- Email y Password -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="juan@ejemplo.com"
+            class="form-control"
+            [class.is-invalid]="form.get('email')?.touched && form.get('email')?.invalid"
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+            class="form-control"
+            [class.is-invalid]="form.get('password')?.touched && form.get('password')?.invalid"
+          />
+        </div>
+      </div>
+
+      <!-- Fecha de Nacimiento (Rápida y directa, sin calendarios engorrosos) -->
+      <div class="form-group">
+        <label for="fecha_nacimiento">
+          Fecha de Nacimiento
+          <span class="label-hint">(Para calcular cupones +50 y control de edad +13/+18)</span>
+        </label>
+        <input
+          id="fecha_nacimiento"
+          type="date"
+          formControlName="fecha_nacimiento"
+          class="form-control date-input"
+          [class.is-invalid]="form.get('fecha_nacimiento')?.touched && form.get('fecha_nacimiento')?.invalid"
+        />
+      </div>
+
+      <!-- Campos especiales pedidos por el Empresario -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tipo_sangre">Tipo de Sangre</label>
+          <select id="tipo_sangre" formControlName="tipo_sangre" class="form-control">
+            @for (t of tiposSangre; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="color_ojos">Color de Ojos</label>
+          <select id="color_ojos" formControlName="color_ojos" class="form-control">
+            @for (c of coloresOjos; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="dias_vacaciones">Días de Vacaciones / Año</label>
+          <input
+            id="dias_vacaciones"
+            type="number"
+            formControlName="dias_vacaciones"
+            class="form-control"
+            min="0"
+            max="90"
+          />
+        </div>
+      </div>
+
+      <div class="auth-benefit-card">
+        <span class="benefit-icon">🎁</span>
+        <div>
+          <strong>Beneficio de bienvenida:</strong>
+          <p>Cupón del <strong>20% de descuento</strong> automático en tu primera compra.</p>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="cargando()" class="btn-primary btn-block">
+        @if (cargando()) {
+          <span class="spinner-sm"></span> Registrando...
+        } @else {
+          Crear mi Cuenta
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes cuenta? <a routerLink="/login" class="link-highlight">Inicia sesión aquí</a></p>
+    </div>
+  </div>
+</div>

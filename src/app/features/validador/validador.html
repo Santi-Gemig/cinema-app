@@ -1,0 +1,194 @@
+<div class="validator-page container">
+  <div class="validator-header">
+    <span class="badge badge-blue">Área de Personal</span>
+    <h1>Módulo de Validación de Entradas y Candy Bar</h1>
+    <p>Escanea el código QR o ingrésalo manualmente si el lector físico presenta fallas.</p>
+  </div>
+
+  <!-- BUSCADOR DE CÓDIGO (MANUAL O ESCÁNER) -->
+  <div class="search-card">
+    <div class="search-flex">
+      <div class="input-wrapper">
+        <span class="input-icon">🔍</span>
+        <input
+          type="text"
+          [ngModel]="codigoInput()"
+          (ngModelChange)="codigoInput.set($event)"
+          (keyup.enter)="buscarCodigo()"
+          placeholder="Ingresa el código alfanumérico (ej: CIN-8K2A9M1P)..."
+          class="form-control code-input"
+        />
+      </div>
+
+      <button (click)="buscarCodigo()" [disabled]="cargando() || !codigoInput().trim()" class="btn-primary">
+        @if (cargando()) {
+          Buscando...
+        } @else {
+          Verificar QR ➔
+        }
+      </button>
+
+      @if (compraEncontrada()) {
+        <button (click)="nuevoEscaneo()" class="btn-secondary">
+          🔄 Siguiente
+        </button>
+      }
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-danger search-alert">
+        ⚠️ {{ errorMsg() }}
+      </div>
+    }
+
+    @if (feedbackValidacion()) {
+      <div class="alert alert-success search-alert">
+        {{ feedbackValidacion() }}
+      </div>
+    }
+  </div>
+
+  <!-- RESULTADO DE LA VALIDACIÓN -->
+  @if (compraEncontrada(); as c) {
+    <div class="result-layout">
+      <!-- DATOS DE LA COMPRA -->
+      <div class="ticket-overview-card">
+        <div class="ticket-header-row">
+          <div>
+            <span class="code-badge">{{ c.qr_codigo }}</span>
+            <h3>{{ c.nombre_contacto }}</h3>
+            <p class="email-text">✉️ {{ c.email_contacto }}</p>
+          </div>
+          <div class="total-tag">
+            <span>Total Pagado:</span>
+            <strong>${{ c.total }}</strong>
+          </div>
+        </div>
+
+        <div class="date-row">
+          <span>Fecha de Compra: {{ c.created_at | date:'dd/MM/yyyy HH:mm' }} hs</span>
+          <span>Método: {{ c.metodo_pago }}</span>
+        </div>
+      </div>
+
+      <!-- SECTORES DE VALIDACIÓN -->
+      <div class="sectors-grid">
+        <!-- SECTOR 1: SALA DE CINE -->
+        <div class="sector-card" [class.sector-used]="c.qr_usado_cine">
+          <div class="sector-header">
+            <div class="sector-title-box">
+              <span class="sector-icon">🎟️</span>
+              <div>
+                <h4>Acceso a Sala de Cine</h4>
+                <p>Validación de butacas</p>
+              </div>
+            </div>
+
+            @if (c.qr_usado_cine) {
+              <span class="badge badge-red">🚫 ENTRADA YA UTILIZADA</span>
+            } @else {
+              <span class="badge badge-green">✅ VÁLIDA PARA INGRESAR</span>
+            }
+          </div>
+
+          <div class="sector-body">
+            @if (c.entradas && c.entradas.length > 0) {
+              <div class="seats-list">
+                <strong>Butacas autorizadas:</strong>
+                <div class="pills-box">
+                  @for (e of c.entradas; track e.fila + e.numero) {
+                    <span class="badge" [class.badge-gold]="e.tipo === 'vip'" [class.badge-blue]="e.tipo === 'discapacidad'">
+                      Fila {{ e.fila }} - Butaca {{ e.numero }} ({{ e.tipo | uppercase }})
+                    </span>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-items-text">Esta compra no incluye entradas de cine.</p>
+            }
+
+            @if (c.qr_usado_cine) {
+              <div class="used-info">
+                ⏱️ Validada el: {{ c.qr_cine_validado_at | date:'dd/MM/yyyy HH:mm:ss' }} hs.
+              </div>
+            }
+          </div>
+
+          <div class="sector-footer">
+            <button
+              (click)="validarSector('cine')"
+              [disabled]="c.qr_usado_cine || cargando() || !c.entradas || c.entradas.length === 0"
+              class="btn-primary btn-block"
+              [class.btn-disabled]="c.qr_usado_cine"
+            >
+              @if (c.qr_usado_cine) {
+                Entrada ya registrada
+              } @else {
+                ✅ Validar Ingreso a Sala
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTOR 2: CANDY BAR -->
+        <div class="sector-card" [class.sector-used]="c.qr_usado_candy">
+          <div class="sector-header">
+            <div class="sector-title-box">
+              <span class="sector-icon">🍿</span>
+              <div>
+                <h4>Retiro en Candy Bar</h4>
+                <p>Snacks, pochoclos y bebidas</p>
+              </div>
+            </div>
+
+            @if (c.qr_usado_candy) {
+              <span class="badge badge-red">🚫 YA ENTREGADO</span>
+            } @else if (c.candy_items && c.candy_items.length > 0) {
+              <span class="badge badge-green">✅ PENDIENTE DE RETIRO</span>
+            } @else {
+              <span class="badge badge-blue">SIN CANDY</span>
+            }
+          </div>
+
+          <div class="sector-body">
+            @if (c.candy_items && c.candy_items.length > 0) {
+              <div class="candy-items-list">
+                <strong>Productos a entregar:</strong>
+                <ul>
+                  @for (item of c.candy_items; track $index) {
+                    <li>
+                      <span>{{ item.cantidad }}x {{ item.nombre }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            } @else {
+              <p class="no-items-text">Esta compra no tiene productos de Candy Bar pendientes.</p>
+            }
+
+            @if (c.qr_usado_candy) {
+              <div class="used-info">
+                ⏱️ Entregado el: {{ c.qr_candy_validado_at | date:'dd/MM/yyyy HH:mm:ss' }} hs.
+              </div>
+            }
+          </div>
+
+          <div class="sector-footer">
+            <button
+              (click)="validarSector('candy')"
+              [disabled]="c.qr_usado_candy || cargando() || !c.candy_items || c.candy_items.length === 0"
+              class="btn-primary btn-block btn-candy"
+              [class.btn-disabled]="c.qr_usado_candy"
+            >
+              @if (c.qr_usado_candy) {
+                Candy ya entregado
+              } @else {
+                🍿 Entregar Pedido de Candy
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,325 @@
+<div class="checkout-page container">
+  <!-- PANTALLA DE COMPRA EXITOSA (POST-PAGO) -->
+  @if (compraRealizada(); as compra) {
+    <div class="success-card">
+      <div class="success-header">
+        <span class="success-icon">🎉</span>
+        <h2>¡Pago Confirmado con Éxito!</h2>
+        <p>Tu entrada digital y tus combos de Candy Bar ya están listos.</p>
+      </div>
+
+      <!-- QR CODE GENERADO -->
+      <div class="qr-container">
+        @if (qrDataUrl()) {
+          <div class="qr-box">
+            <img [src]="qrDataUrl()" alt="Código QR de la Entrada" />
+          </div>
+        }
+        <div class="qr-code-text">
+          <span>Código de Retiro / Validación:</span>
+          <strong>{{ compra.qr_codigo }}</strong>
+        </div>
+      </div>
+
+      <!-- ACCIÓN DE DESCARGA PDF -->
+      <div class="pdf-download-box">
+        <button (click)="descargarPDF()" class="btn-primary btn-large">
+          📥 Descargar Entrada Oficial en PDF
+        </button>
+        <p class="pdf-hint">El archivo PDF contiene todos los datos de tu función, butacas y el QR de validación.</p>
+      </div>
+
+      <!-- PUNTOS Y REGLAS DE NEGOCIO -->
+      <div class="success-notes">
+        <div class="note-item">
+          <span>⭐</span>
+          <div>
+            <strong>+{{ compra.puntos_ganados }} Puntos Ganados</strong>
+            <p>Se acumularon en tu cuenta a razón de 1 punto por cada peso gastado.</p>
+          </div>
+        </div>
+
+        <div class="note-item">
+          <span>⏱️</span>
+          <div>
+            <strong>Política de Cancelación:</strong>
+            <p>Puedes cancelar esta compra hasta <strong>2 horas antes</strong> de la función y se te devolverá el 100% como crédito en cuenta.</p>
+          </div>
+        </div>
+
+        <div class="note-item">
+          <span>🍿</span>
+          <div>
+            <strong>Un solo QR:</strong>
+            <p>Presenta este mismo código tanto en la entrada a la sala como en el mostrador del Candy Bar.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a routerLink="/" class="btn-secondary">
+          Volver a la Cartelera
+        </a>
+      </div>
+    </div>
+  } @else {
+    <!-- CHECKOUT FORM (PASO DE PAGO) -->
+    <div class="checkout-header">
+      <span class="badge badge-gold">Paso Final</span>
+      <h1>Confirmación y Pago</h1>
+      <p>Revisa tu selección y completa los datos para recibir tus entradas digitales</p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-danger">
+        ⚠️ {{ errorMsg() }}
+      </div>
+    }
+
+    <div class="checkout-layout">
+      <!-- COLUMNA IZQUIERDA: RESUMEN Y FORMULARIO -->
+      <div class="checkout-main">
+        <!-- 1. RESUMEN DE ENTRADAS -->
+        @if (cartService.entradas().length > 0) {
+          <div class="panel-box">
+            <div class="panel-title">
+              <span>🎟️</span>
+              <h3>Entradas Seleccionadas ({{ cartService.totalEntradas() }})</h3>
+            </div>
+
+            <div class="movie-banner-info">
+              <h4>{{ cartService.entradas()[0].funcion.pelicula?.titulo }}</h4>
+              <p class="movie-meta">
+                {{ cartService.entradas()[0].funcion.sala?.nombre }} •
+                {{ cartService.entradas()[0].funcion.formato }} •
+                {{ cartService.entradas()[0].funcion.idioma }}
+              </p>
+            </div>
+
+            <div class="seats-review-list">
+              @for (item of cartService.entradas(); track item.butaca.fila + item.butaca.numero) {
+                <div class="seat-review-item">
+                  <div class="seat-tag">
+                    <span class="seat-loc">Fila {{ item.butaca.fila }} - Butaca {{ item.butaca.numero }}</span>
+                    <span class="seat-type badge" [class.badge-gold]="item.butaca.tipo === 'vip'" [class.badge-blue]="item.butaca.tipo === 'discapacidad'">
+                      {{ item.butaca.tipo | uppercase }}
+                    </span>
+                  </div>
+                  <span class="seat-price">${{ item.butaca.precio }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- 2. RESUMEN DE CANDY BAR -->
+        @if (cartService.totalCandyItems() > 0) {
+          <div class="panel-box">
+            <div class="panel-title">
+              <span>🍿</span>
+              <h3>Snacks y Combos ({{ cartService.totalCandyItems() }})</h3>
+            </div>
+
+            <div class="candy-review-list">
+              @for (item of cartService.candyItems(); track item.producto.id) {
+                <div class="candy-review-item">
+                  <span>{{ item.cantidad }}x {{ item.producto.nombre }}</span>
+                  <span class="candy-price">${{ item.producto.precio * item.cantidad }}</span>
+                </div>
+              }
+              @for (item of cartService.comboItems(); track item.combo.id) {
+                <div class="candy-review-item combo-item">
+                  <span>{{ item.cantidad }}x {{ item.combo.nombre }} (Combo)</span>
+                  <span class="candy-price">${{ item.combo.precio * item.cantidad }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- 3. CUPONES Y BENEFICIOS -->
+        <div class="panel-box">
+          <div class="panel-title">
+            <span>🏷️</span>
+            <h3>Cupones de Descuento</h3>
+          </div>
+
+          <div class="coupon-box">
+            <div class="coupon-input-group">
+              <input
+                type="text"
+                [ngModel]="codigoCupon()"
+                (ngModelChange)="codigoCupon.set($event)"
+                placeholder="Ej: BIENVENIDA20, MAYORES50"
+                class="form-control"
+              />
+              <button (click)="aplicarCupon()" class="btn-secondary">
+                Aplicar
+              </button>
+            </div>
+
+            @if (cuponAplicado()) {
+              <div class="coupon-success">
+                🎉 ¡Cupón <strong>{{ cuponAplicado() }}</strong> aplicado! ({{ porcentajeDescuento() }}% de descuento)
+              </div>
+            }
+            @if (cuponError()) {
+              <div class="coupon-error">
+                ⚠️ {{ cuponError() }}
+              </div>
+            }
+          </div>
+
+          <!-- SALDO A FAVOR / CRÉDITO DISPONIBLE -->
+          @if (creditoDisponible() > 0) {
+            <div class="credit-box">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="usarCredito()"
+                  (change)="usarCredito.set(!usarCredito())"
+                />
+                <span>
+                  Usar mi saldo a favor disponible: <strong>${{ creditoDisponible() }}</strong>
+                </span>
+              </label>
+            </div>
+          }
+        </div>
+
+        <!-- 4. DATOS DEL COMPRADOR (ANÓNIMO O REGISTRADO) -->
+        <div class="panel-box">
+          <div class="panel-title">
+            <span>👤</span>
+            <h3>Datos de Contacto para la Entrada</h3>
+          </div>
+
+          @if (!authService.isLoggedIn()) {
+            <div class="guest-checkout-banner">
+              <div class="guest-banner-text">
+                <strong>¿Querés acumular puntos o usar descuentos?</strong>
+                <p>
+                  <a routerLink="/login" class="link-highlight">Iniciá sesión</a> o 
+                  <a routerLink="/registro" class="link-highlight">registrate</a> para obtener tu cupón del <strong>20% de bienvenida</strong> y sumar puntos de fidelización.
+                </p>
+                <p class="guest-subtext">
+                  ✓ También podés continuar como <strong>Invitado (Compra rápida)</strong> completando los datos a continuación.
+                </p>
+              </div>
+            </div>
+          }
+
+          <form [formGroup]="form" class="buyer-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre">Nombre y Apellido *</label>
+                <input
+                  id="nombre"
+                  type="text"
+                  formControlName="nombre"
+                  placeholder="Tu nombre completo"
+                  class="form-control"
+                  [class.is-invalid]="form.get('nombre')?.touched && form.get('nombre')?.invalid"
+                />
+                @if (form.get('nombre')?.touched && form.get('nombre')?.invalid) {
+                  <span class="field-error">Ingresá tu nombre y apellido</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="email">Correo Electrónico (para recibir la entrada y el QR) *</label>
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="tu@email.com"
+                  class="form-control"
+                  [class.is-invalid]="form.get('email')?.touched && form.get('email')?.invalid"
+                />
+                @if (form.get('email')?.touched && form.get('email')?.invalid) {
+                  <span class="field-error">Ingresá un correo electrónico válido</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Método de Pago</label>
+              <div class="payment-options">
+                <label class="payment-radio">
+                  <input type="radio" value="Tarjeta de Crédito" formControlName="metodoPago" />
+                  <span>💳 Tarjeta de Crédito</span>
+                </label>
+                <label class="payment-radio">
+                  <input type="radio" value="Tarjeta de Débito" formControlName="metodoPago" />
+                  <span>💳 Tarjeta de Débito</span>
+                </label>
+                <label class="payment-radio">
+                  <input type="radio" value="Mercado Pago" formControlName="metodoPago" />
+                  <span>🔵 Mercado Pago</span>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: TOTAL Y BOTÓN DE ACCIÓN -->
+      <div class="checkout-sidebar">
+        <div class="summary-card">
+          <h3>Resumen del Pedido</h3>
+
+          <div class="summary-row">
+            <span>Entradas ({{ cartService.totalEntradas() }}):</span>
+            <span>${{ cartService.subtotalEntradas() }}</span>
+          </div>
+
+          @if (cartService.totalCandyItems() > 0) {
+            <div class="summary-row">
+              <span>Candy Bar ({{ cartService.totalCandyItems() }} items):</span>
+              <span>${{ cartService.subtotalCandy() }}</span>
+            </div>
+          }
+
+          @if (descuentoMonto() > 0) {
+            <div class="summary-row discount-row">
+              <span>Descuento ({{ porcentajeDescuento() }}%):</span>
+              <span>-${{ descuentoMonto() }}</span>
+            </div>
+          }
+
+          @if (creditoAplicado() > 0) {
+            <div class="summary-row credit-row">
+              <span>Saldo a favor aplicado:</span>
+              <span>-${{ creditoAplicado() }}</span>
+            </div>
+          }
+
+          <div class="summary-total">
+            <span>Total a Pagar:</span>
+            <span class="total-amount">${{ totalPagar() }}</span>
+          </div>
+
+          <!-- PUNTOS GANADOS -->
+          <div class="points-reward-box">
+            <span>⭐</span>
+            <p>¡Con esta compra sumas <strong>{{ puntosAGanar() }} puntos</strong> de fidelización!</p>
+          </div>
+
+          <button
+            (click)="realizarPago()"
+            [disabled]="cargando()"
+            class="btn-primary btn-block btn-large"
+          >
+            @if (cargando()) {
+              <span class="spinner-sm"></span> Procesando Pago...
+            } @else {
+              Pagar y Obtener Entradas ➔
+            }
+          </button>
+
+          <p class="safe-payment-hint">🔒 Transacción simulada 100% segura con Supabase.</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
