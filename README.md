@@ -62,7 +62,15 @@
 - [x] **Hito 2 (Semana 7):** Catálogo de cartelera, buscador multigénero, módulo de preventa y mapa interactivo de butacas con Realtime.
 - [x] **Hito 3 (Semana 11):** Checkout unificado (entradas + candy bar), generación de PDF con QR dinámico y módulo de validación para empleados.
 - [x] **Hito 4 (Semana 15):** Panel de administración completo con asignación automática de salas (sin solapamientos y buffer de 30 min), reportes exportables a PDF/Excel, auditoría y módulo Mis Películas.
-- [ ] **Hito 5 (Semana 20):** Despliegue en producción con soporte PWA, URL funcional, repositorio GitHub documentado y defensa oral.
+- [x] **Hito 5 (Semana 20):** Despliegue en producción con soporte PWA (`@angular/pwa`, Service Worker, manifest, offline cache), repositorio GitHub documentado y preparación para defensa oral.
 
 ---
-*Desarrollado con dedicación para Programación IV.*
+
+## 📱 Capacidades PWA (Progressive Web App)
+
+- **Instalable en Dispositivos:** Compatible con Web App Manifest (`manifest.webmanifest`), permitiendo instalar la app como aplicación nativa en Windows, Android, iOS y macOS.
+- **Service Worker Reactivo:** Gestionado por `@angular/service-worker` con estrategia `registerWhenStable:30000`.
+- **Caché Offline Inteligente:** Precarga de bundles (`prefetch`) y almacenamiento en caché de imágenes de catálogo y recursos estáticos (`performance`/`lazy`).
+
+---
+*Desarrollado con dedicación para Programación IV — Santiago Gemignani.*
