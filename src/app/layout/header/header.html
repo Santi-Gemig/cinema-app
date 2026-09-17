@@ -1,0 +1,80 @@
+<header class="navbar-wrapper">
+  <div class="container navbar-container">
+    <!-- Logo -->
+    <a routerLink="/" class="navbar-brand">
+      <span class="brand-icon">🍿</span>
+      <div class="brand-text">
+        <span class="brand-title">CINEMA<span class="highlight">APP</span></span>
+        <span class="brand-subtitle">Experiencia Cinematográfica</span>
+      </div>
+    </a>
+
+    <!-- Navegación principal -->
+    <nav class="navbar-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+        Cartelera
+      </a>
+      <a routerLink="/candy" routerLinkActive="active" class="nav-item nav-with-badge">
+        Candy Bar
+        @if (cartService.totalCandyItems() > 0) {
+          <span class="cart-bubble">{{ cartService.totalCandyItems() }}</span>
+        }
+      </a>
+      <a routerLink="/proximamente" routerLinkActive="active" class="nav-item">
+        Próximamente
+      </a>
+
+      @if (authService.isLoggedIn()) {
+        <a routerLink="/mis-peliculas" routerLinkActive="active" class="nav-item">
+          Mis Películas
+        </a>
+      }
+
+      <!-- Enlace exclusivo para Empleados / Admins -->
+      <a *appRole="'empleado'" routerLink="/validador" routerLinkActive="active" class="nav-item nav-special">
+        📷 Validar QR
+      </a>
+
+      <!-- Enlace exclusivo para Administrador -->
+      <a *appRole="'admin'" routerLink="/admin" routerLinkActive="active" class="nav-item nav-admin">
+        ⚙️ Admin
+      </a>
+    </nav>
+
+    <!-- Zona de Usuario -->
+    <div class="navbar-auth">
+      @if (authService.isLoggedIn()) {
+        <div class="user-profile-badge">
+          <div class="user-stats">
+            <span class="badge badge-gold" title="Puntos de fidelización canjeables">
+              ⭐ {{ authService.currentUserData()?.puntos ?? 0 }} pts
+            </span>
+            @if ((authService.currentUserData()?.credito ?? 0) > 0) {
+              <span class="badge badge-green" title="Crédito a favor en cuenta">
+                💳 ${{ authService.currentUserData()?.credito }}
+              </span>
+            }
+          </div>
+          
+          <div class="user-info">
+            <span class="user-name">
+              {{ authService.currentUserData()?.nombre || authService.currentUser()?.email }}
+            </span>
+            <span class="user-role badge" [class.badge-red]="authService.isAdmin()" [class.badge-blue]="!authService.isAdmin()">
+              {{ authService.rol() || 'cliente' }}
+            </span>
+          </div>
+
+          <button (click)="onLogout()" class="btn-logout" title="Cerrar sesión">
+            🚪 Salir
+          </button>
+        </div>
+      } @else {
+        <div class="auth-buttons">
+          <a routerLink="/login" class="btn-login">Iniciar Sesión</a>
+          <a routerLink="/registro" class="btn-register">Registrarse</a>
+        </div>
+      }
+    </div>
+  </div>
+</header>
