@@ -1,4 +1,6 @@
 {
+  "outputDirectory": "dist/cinema-app/browser",
+  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
     {
       "source": "/(.*)",
