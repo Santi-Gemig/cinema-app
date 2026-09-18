@@ -16,12 +16,6 @@ export class HeaderComponent {
   cartService = inject(CartService);
   private router = inject(Router);
 
-  async alternarRol() {
-    const roles: ('cliente' | 'empleado' | 'admin')[] = ['cliente', 'empleado', 'admin'];
-    const actual = this.authService.rol() || 'cliente';
-    const next = roles[(roles.indexOf(actual) + 1) % roles.length];
-    await this.authService.cambiarRol(next);
-  }
 
   async onLogout() {
     await this.authService.logout();

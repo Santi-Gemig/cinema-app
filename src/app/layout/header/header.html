@@ -60,17 +60,14 @@
             <span class="user-name">
               {{ authService.currentUserData()?.nombre || authService.currentUser()?.email }}
             </span>
-            <button
-              type="button"
-              (click)="alternarRol()"
+            <span
               class="user-role badge"
               [class.badge-red]="authService.isAdmin()"
-              [class.badge-blue]="!authService.isAdmin()"
-              title="Haz clic para alternar rol de prueba (Cliente / Empleado / Admin)"
-              style="cursor: pointer; border: none;"
+              [class.badge-gold]="authService.isEmpleado() && !authService.isAdmin()"
+              [class.badge-blue]="!authService.isEmpleado() && !authService.isAdmin()"
             >
-              {{ authService.rol() || 'cliente' }} 🔄
-            </button>
+              {{ authService.rol() || 'cliente' }}
+            </span>
           </div>
 
           <button (click)="onLogout()" class="btn-logout" title="Cerrar sesión">
