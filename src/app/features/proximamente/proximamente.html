@@ -30,20 +30,19 @@
         <div class="release-card">
           <div class="poster-container">
             <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" />
-            
-            <div class="release-badges">
-              <span class="badge badge-red">Estreno</span>
-              @if (pelicula.precio_preventa) {
-                <span class="badge badge-gold">Preventa Especial</span>
-              }
-            </div>
           </div>
 
           <div class="release-info">
             <div class="release-header-row">
-              <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
-                {{ pelicula.clasificacion_edad }}
-              </span>
+              <div class="release-tags-group">
+                <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
+                  {{ pelicula.clasificacion_edad }}
+                </span>
+                <span class="badge badge-red">Estreno</span>
+                @if (pelicula.precio_preventa) {
+                  <span class="badge badge-gold">Preventa</span>
+                }
+              </div>
               <span class="duration">⏱️ {{ pelicula.duracion_minutos }} min</span>
             </div>
 
@@ -92,7 +91,7 @@
 
               @if (pelicula.precio_preventa) {
                 <a [routerLink]="['/pelicula', pelicula.id]" class="btn-primary btn-sm">
-                  🎟️ Comprar Preventa
+                  Comprar Preventa
                 </a>
               }
             </div>

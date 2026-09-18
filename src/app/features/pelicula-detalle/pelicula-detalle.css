@@ -587,3 +587,85 @@
   font-style: italic;
   font-size: 0.9rem;
 }
+
+.mobile-scroll-hint {
+  display: none;
+}
+
+/* RESPONSIVE PELICULA DETALLE */
+@media (max-width: 860px) {
+  .hero-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .hero-poster {
+    width: 200px;
+  }
+
+  .hero-details {
+    min-width: 100%;
+    align-items: center;
+  }
+
+  .movie-title {
+    font-size: 1.85rem;
+  }
+
+  .badges-row, .genres-box {
+    justify-content: center;
+  }
+
+  .mobile-scroll-hint {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-scroll-hint span {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .screenings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .seating-legend {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .legend-item {
+    font-size: 0.75rem;
+  }
+
+  .seating-action-bar {
+    min-width: unset;
+    width: calc(100% - 2rem);
+    bottom: 1rem;
+    padding: 0.85rem 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .seating-checkout-side {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .btn-continue-checkout {
+    flex: 1;
+    justify-content: center;
+  }
+}
+

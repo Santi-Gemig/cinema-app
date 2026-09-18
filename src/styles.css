@@ -92,6 +92,12 @@ button {
   padding: 0 1.5rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

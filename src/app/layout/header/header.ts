@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
@@ -16,8 +16,18 @@ export class HeaderComponent {
   cartService = inject(CartService);
   private router = inject(Router);
 
+  menuAbierto = signal(false);
+
+  toggleMenu() {
+    this.menuAbierto.update(v => !v);
+  }
+
+  cerrarMenu() {
+    this.menuAbierto.set(false);
+  }
 
   async onLogout() {
+    this.cerrarMenu();
     await this.authService.logout();
     this.router.navigate(['/']);
   }

@@ -1,7 +1,7 @@
 <header class="navbar-wrapper">
   <div class="container navbar-container">
-    <!-- Logo -->
-    <a routerLink="/" class="navbar-brand">
+    <!-- Logo / Marca -->
+    <a routerLink="/" (click)="cerrarMenu()" class="navbar-brand">
       <span class="brand-icon">🍿</span>
       <div class="brand-text">
         <span class="brand-title">CINEMA<span class="highlight">APP</span></span>
@@ -9,8 +9,8 @@
       </div>
     </a>
 
-    <!-- Navegación principal -->
-    <nav class="navbar-nav">
+    <!-- Navegación Desktop (Oculta en <= 1024px) -->
+    <nav class="navbar-nav desktop-nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
         Cartelera
       </a>
@@ -41,8 +41,8 @@
       </a>
     </nav>
 
-    <!-- Zona de Usuario -->
-    <div class="navbar-auth">
+    <!-- Zona de Usuario Desktop (Oculta en <= 1024px) -->
+    <div class="navbar-auth desktop-auth">
       @if (authService.isLoggedIn()) {
         <div class="user-profile-badge">
           <div class="user-stats">
@@ -81,5 +81,91 @@
         </div>
       }
     </div>
+
+    <!-- Acciones Móviles (Visibles solo en <= 1024px a la derecha) -->
+    <div class="mobile-actions">
+      @if (cartService.totalCandyItems() > 0) {
+        <a routerLink="/candy" (click)="cerrarMenu()" class="mobile-cart-btn" title="Ver carrito">
+          🍿 <span class="cart-bubble-mobile">{{ cartService.totalCandyItems() }}</span>
+        </a>
+      }
+      <button 
+        class="mobile-menu-btn" 
+        (click)="toggleMenu()" 
+        [attr.aria-expanded]="menuAbierto()"
+        aria-label="Abrir menú"
+      >
+        {{ menuAbierto() ? '✕' : '☰' }}
+      </button>
+    </div>
   </div>
+
+  <!-- Drawer / Menú desplegable Móvil -->
+  @if (menuAbierto()) {
+    <div class="mobile-drawer">
+      @if (authService.isLoggedIn()) {
+        <div class="drawer-user-card">
+          <div class="drawer-user-header">
+            <span class="drawer-user-name">
+              {{ authService.currentUserData()?.nombre || authService.currentUser()?.email }}
+            </span>
+            <span
+              class="badge"
+              [class.badge-red]="authService.isAdmin()"
+              [class.badge-gold]="authService.isEmpleado() && !authService.isAdmin()"
+              [class.badge-blue]="!authService.isEmpleado() && !authService.isAdmin()"
+            >
+              {{ authService.rol() || 'cliente' }}
+            </span>
+          </div>
+          <div class="drawer-user-badges">
+            <span class="badge badge-gold">⭐ {{ authService.currentUserData()?.puntos ?? 0 }} pts</span>
+            @if ((authService.currentUserData()?.credito ?? 0) > 0) {
+              <span class="badge badge-green">💳 ${{ authService.currentUserData()?.credito }} crédito</span>
+            }
+          </div>
+        </div>
+      }
+
+      <nav class="drawer-nav">
+        <a routerLink="/" (click)="cerrarMenu()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="drawer-item">
+          🎬 Cartelera
+        </a>
+        <a routerLink="/candy" (click)="cerrarMenu()" routerLinkActive="active" class="drawer-item drawer-with-badge">
+          <span>🍿 Candy Bar</span>
+          @if (cartService.totalCandyItems() > 0) {
+            <span class="cart-bubble">{{ cartService.totalCandyItems() }}</span>
+          }
+        </a>
+        <a routerLink="/proximamente" (click)="cerrarMenu()" routerLinkActive="active" class="drawer-item">
+          🗓️ Próximamente
+        </a>
+        @if (authService.isLoggedIn()) {
+          <a routerLink="/mis-peliculas" (click)="cerrarMenu()" routerLinkActive="active" class="drawer-item">
+            🎟️ Mis Películas
+          </a>
+        }
+        <a *appRole="'empleado'" routerLink="/validador" (click)="cerrarMenu()" routerLinkActive="active" class="drawer-item drawer-special">
+          📷 Validar QR
+        </a>
+        <a *appRole="'admin'" routerLink="/admin" (click)="cerrarMenu()" routerLinkActive="active" class="drawer-item drawer-admin">
+          ⚙️ Panel de Administración
+        </a>
+      </nav>
+
+      <div class="drawer-footer">
+        @if (authService.isLoggedIn()) {
+          <button (click)="onLogout()" class="drawer-btn-logout">
+            🚪 Cerrar Sesión
+          </button>
+        } @else {
+          <div class="drawer-auth-buttons">
+            <a routerLink="/login" (click)="cerrarMenu()" class="drawer-btn-login">Iniciar Sesión</a>
+            <a routerLink="/registro" (click)="cerrarMenu()" class="drawer-btn-register">Registrarse</a>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </header>
+

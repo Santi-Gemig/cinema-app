@@ -48,11 +48,12 @@
   }
 }
 
-/* GRILLA DE ESTRENOS */
+/* GRILLA DE ESTRENOS (Desktop: Tarjeta horizontal espaciosa con póster vertical completo) */
 .releases-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(580px, 760px));
   gap: 2rem;
+  justify-content: center;
 }
 
 .release-card {
@@ -61,49 +62,72 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 350px;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
   transition: var(--transition);
 }
 
 .release-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(245, 197, 24, 0.4);
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
 }
 
 .poster-container {
   position: relative;
-  aspect-ratio: 16 / 9;
+  width: 235px;
+  min-width: 235px;
   background: #000;
   overflow: hidden;
+  align-self: stretch;
+  display: flex;
 }
 
 .poster-container img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+  transition: transform 0.4s ease;
 }
 
-.release-badges {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  display: flex;
-  gap: 0.5rem;
+.release-card:hover .poster-container img {
+  transform: scale(1.04);
 }
 
 .release-info {
-  padding: 1.5rem;
+  padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 0.65rem;
   flex: 1;
+  min-width: 0;
 }
 
 .release-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.release-tags-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.release-tags-group .badge {
+  font-size: 0.72rem;
+  padding: 0.22rem 0.6rem;
+  letter-spacing: 0.3px;
 }
 
 .duration {
@@ -112,8 +136,11 @@
 }
 
 .release-title {
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 800;
+  color: #ffffff;
+  margin: 0.1rem 0;
+  line-height: 1.25;
 }
 
 .genres-row {
@@ -133,18 +160,22 @@
 .release-synopsis {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .pricing-card {
   background: var(--bg-surface);
   border: 1px dashed var(--border-color);
-  padding: 0.85rem 1rem;
+  padding: 0.8rem 1.1rem;
   border-radius: var(--radius-md);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 
 .price-item {
@@ -156,12 +187,14 @@
   font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .price-highlight {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--secondary);
+  line-height: 1.1;
 }
 
 .price-strike {
@@ -172,9 +205,10 @@
 
 .card-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.85rem;
   margin-top: auto;
   padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   align-items: center;
 }
 
@@ -183,16 +217,17 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 0.7rem 1rem;
+  padding: 0.65rem 1rem;
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   transition: var(--transition);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .btn-alert:hover {
@@ -206,6 +241,25 @@
   color: #86efac;
 }
 
+.card-actions .btn-primary {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(229, 9, 20, 0.4);
+}
+
+.card-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(229, 9, 20, 0.55);
+}
+
 .loading-state, .empty-state {
   display: flex;
   flex-direction: column;
@@ -217,4 +271,62 @@
 
 .empty-icon {
   font-size: 3rem;
+}
+
+/* RESPONSIVE: Mantiene la versión en celular */
+@media (max-width: 768px) {
+  .proximamente-page {
+    padding: 1.5rem 1rem 5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .releases-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .release-card {
+    flex-direction: column;
+    max-width: 100%;
+    min-height: auto;
+  }
+
+  .poster-container {
+    width: 100%;
+    min-width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+
+  .release-info {
+    padding: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .release-title {
+    font-size: 1.25rem;
+  }
+
+  .release-synopsis {
+    -webkit-line-clamp: 4;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: none;
+  }
+
+  .btn-alert, .card-actions .btn-primary {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
 }

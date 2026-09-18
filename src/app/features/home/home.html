@@ -10,28 +10,34 @@
 
         <div class="top-grid">
           @for (pelicula of top3(); track pelicula.id; let i = $index) {
-            <div class="top-card">
-              <div class="top-rank-badge">#{{ i + 1 }}</div>
-              <div class="poster-wrapper">
-                <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" class="poster-img" />
-                <div class="poster-overlay">
-                  <a [routerLink]="['/pelicula', pelicula.id]" class="btn-primary">
-                    🎟️ Sacar Entradas
-                  </a>
+            <div class="top-card" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+              <div class="top-poster-box">
+                <img [src]="pelicula.imagen_url" [alt]="pelicula.titulo" class="top-poster-img" />
+                <div class="top-rank-badge" [class.badge-gold-rank]="i === 0" [class.badge-silver-rank]="i === 1" [class.badge-bronze-rank]="i === 2">
+                  {{ i === 0 ? '👑 #1' : (i === 1 ? '🥈 #2' : '🥉 #3') }}
                 </div>
               </div>
-              <div class="card-details">
-                <div class="card-meta">
+              <div class="top-card-content">
+                <div class="top-card-meta">
                   <span class="badge" [class.badge-red]="pelicula.clasificacion_edad === '+18'" [class.badge-gold]="pelicula.clasificacion_edad === '+13'" [class.badge-green]="pelicula.clasificacion_edad === 'ATP'">
                     {{ pelicula.clasificacion_edad }}
                   </span>
                   <span class="duration">⏱️ {{ pelicula.duracion_minutos }} min</span>
                 </div>
-                <h3 class="card-title">{{ pelicula.titulo }}</h3>
-                <div class="genres-list">
-                  @for (g of pelicula.generos; track g) {
-                    <span class="genre-pill">{{ g }}</span>
+                <h3 class="top-card-title">{{ pelicula.titulo }}</h3>
+                <div class="top-genres">
+                  @for (g of pelicula.generos | slice: 0 : 3; track g) {
+                    <span class="genre-pill-mini">{{ g }}</span>
                   }
+                </div>
+                <div class="top-card-bottom">
+                  <div class="price-box-top">
+                    <span class="price-label-top">Entradas desde</span>
+                    <span class="top-price">${{ pelicula.precio_normal }}</span>
+                  </div>
+                  <a [routerLink]="['/pelicula', pelicula.id]" class="btn-top-buy">
+                    Sacar Entradas
+                  </a>
                 </div>
               </div>
             </div>
