@@ -353,8 +353,8 @@
 
 .movie-poster-box {
   position: relative;
+  width: 100%;
   aspect-ratio: 2 / 3;
-  max-height: 250px;
   background: #000;
   overflow: hidden;
 }
@@ -363,6 +363,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .movie-hover-info {
@@ -655,10 +656,6 @@
     gap: 0.75rem;
   }
 
-  .movie-poster-box {
-    max-height: 200px;
-  }
-
   .movie-title {
     font-size: 0.85rem;
   }
@@ -668,10 +665,6 @@
   .movies-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-  }
-
-  .movie-poster-box {
-    max-height: 175px;
   }
 
   .movie-body {
