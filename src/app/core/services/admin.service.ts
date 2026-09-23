@@ -664,4 +664,44 @@ export class AdminService {
     link.click();
     document.body.removeChild(link);
   }
+
+  // =====================================================
+  // 6. SUPABASE STORAGE (Clase 7 - Subida de Archivos)
+  // =====================================================
+  async subirArchivo(archivo: File, bucket: string = 'productos'): Promise<string> {
+    const extension = archivo.name.split('.').pop() || 'jpg';
+    const nombreLimpio = archivo.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const nombreArchivo = `${Date.now()}_${nombreLimpio}.${extension}`;
+
+    const { error: uploadError } = await this.supabase.storage
+      .from(bucket)
+      .upload(nombreArchivo, archivo, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Error al subir archivo a Supabase Storage:', uploadError);
+      throw uploadError;
+    }
+
+    const { data: urlData } = this.supabase.storage
+      .from(bucket)
+      .getPublicUrl(nombreArchivo);
+
+    return urlData.publicUrl;
+  }
+
+  async eliminarArchivo(url: string, bucket: string = 'productos'): Promise<void> {
+    if (!url) return;
+    const nombreArchivo = url.split('/').pop();
+    if (nombreArchivo) {
+      const { error } = await this.supabase.storage
+        .from(bucket)
+        .remove([nombreArchivo]);
+      if (error) {
+        console.error('Error al eliminar archivo de storage:', error);
+      }
+    }
+  }
 }

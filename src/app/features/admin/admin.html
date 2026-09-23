@@ -662,8 +662,45 @@
             </select>
           </div>
           <div class="form-group col-full">
-            <label>URL Imagen Póster</label>
-            <input type="text" [(ngModel)]="peliculaEnEdicion().imagen_url" class="form-control" />
+            <label>Póster de la Película (Supabase Storage - Clase 7)</label>
+            <div class="storage-upload-container">
+              <div class="storage-file-row">
+                <input
+                  type="file"
+                  id="peliFileInput"
+                  accept="image/*"
+                  (change)="seleccionarArchivoPelicula($event)"
+                  class="file-hidden-input"
+                />
+                <label for="peliFileInput" class="btn-storage-upload">
+                  📁 Seleccionar Imagen de tu Dispositivo...
+                </label>
+                @if (archivoSeleccionadoPelicula()) {
+                  <span class="file-chosen-tag">
+                    📎 {{ archivoSeleccionadoPelicula()?.name }}
+                  </span>
+                }
+              </div>
+              <div class="storage-url-row">
+                <span class="storage-or-divider">o ingresa una URL web directa:</span>
+                <input
+                  type="text"
+                  [(ngModel)]="peliculaEnEdicion().imagen_url"
+                  placeholder="https://image.tmdb.org/..."
+                  class="form-control"
+                />
+              </div>
+              @if (previewUrlPelicula() || peliculaEnEdicion().imagen_url) {
+                <div class="storage-preview-wrap">
+                  <span class="preview-mini-title">Vista previa:</span>
+                  <img
+                    [src]="previewUrlPelicula() || peliculaEnEdicion().imagen_url"
+                    alt="Vista previa"
+                    class="storage-preview-img"
+                  />
+                </div>
+              }
+            </div>
           </div>
           <div class="form-group col-full">
             <label>Géneros (separados por coma)</label>
@@ -724,6 +761,46 @@
           <div class="form-group">
             <label>Puntos Requeridos para Canje (Fidelización)</label>
             <input type="number" [(ngModel)]="itemCandyEnEdicion().puntos_canje" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Imagen del Producto (Supabase Storage - Clase 7)</label>
+            <div class="storage-upload-container">
+              <div class="storage-file-row">
+                <input
+                  type="file"
+                  id="candyFileInput"
+                  accept="image/*"
+                  (change)="seleccionarArchivoCandy($event)"
+                  class="file-hidden-input"
+                />
+                <label for="candyFileInput" class="btn-storage-upload">
+                  📁 Seleccionar Foto...
+                </label>
+                @if (archivoSeleccionadoCandy()) {
+                  <span class="file-chosen-tag">
+                    📎 {{ archivoSeleccionadoCandy()?.name }}
+                  </span>
+                }
+              </div>
+              <div class="storage-url-row">
+                <span class="storage-or-divider">o ingresa URL:</span>
+                <input
+                  type="text"
+                  [(ngModel)]="itemCandyEnEdicion().imagen_url"
+                  placeholder="https://..."
+                  class="form-control"
+                />
+              </div>
+              @if (previewUrlCandy() || itemCandyEnEdicion().imagen_url) {
+                <div class="storage-preview-wrap">
+                  <img
+                    [src]="previewUrlCandy() || itemCandyEnEdicion().imagen_url"
+                    alt="Vista previa"
+                    class="storage-preview-img"
+                  />
+                </div>
+              }
+            </div>
           </div>
         </div>
         <div class="modal-footer">

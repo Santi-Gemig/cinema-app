@@ -78,6 +78,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   });
   generoInput = signal<string>('Acción, Aventura');
 
+  // Supabase Storage para Películas (Clase 7)
+  archivoSeleccionadoPelicula = signal<File | null>(null);
+  previewUrlPelicula = signal<string | null>(null);
+
   // 4. CANDY BAR Y COMBOS
   productosCandy = signal<ProductoCandy[]>([]);
   combosEspeciales = signal<ComboEspecial[]>([]);
@@ -91,6 +95,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     imagen_url: '',
     activo: true
   });
+
+  // Supabase Storage para Candy Bar (Clase 7)
+  archivoSeleccionadoCandy = signal<File | null>(null);
+  previewUrlCandy = signal<string | null>(null);
+
   modalComboVisible = signal<boolean>(false);
   comboEnEdicion = signal<Partial<ComboEspecial>>({
     nombre: '',
@@ -123,6 +132,14 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Liberar memoria de previews de Supabase Storage (Clase 7)
+    if (this.previewUrlPelicula()) {
+      URL.revokeObjectURL(this.previewUrlPelicula()!);
+    }
+    if (this.previewUrlCandy()) {
+      URL.revokeObjectURL(this.previewUrlCandy()!);
+    }
+
     // Prevención de fugas de memoria con removeChannel (Clase 6 - Diapositiva 10)
     if (this.canalAuditoria) {
       this.adminService.desuscribirCanal(this.canalAuditoria);
@@ -278,9 +295,25 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   // =====================================================
-  // GESTIÓN DE PELÍCULAS
+  // GESTIÓN DE PELÍCULAS (Con Supabase Storage - Clase 7)
   // =====================================================
+  seleccionarArchivoPelicula(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const archivo = input.files[0];
+    this.archivoSeleccionadoPelicula.set(archivo);
+
+    const prev = this.previewUrlPelicula();
+    if (prev) URL.revokeObjectURL(prev);
+    this.previewUrlPelicula.set(URL.createObjectURL(archivo));
+  }
+
   abrirModalPelicula(pelicula?: Pelicula) {
+    const prev = this.previewUrlPelicula();
+    if (prev) URL.revokeObjectURL(prev);
+    this.archivoSeleccionadoPelicula.set(null);
+    this.previewUrlPelicula.set(null);
+
     if (pelicula) {
       this.peliculaEnEdicion.set({ ...pelicula });
       this.generoInput.set((pelicula.generos || []).join(', '));
@@ -306,8 +339,10 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   async guardarPelicula() {
     const p = this.peliculaEnEdicion();
-    if (!p.titulo || !p.sinopsis || !p.imagen_url) {
-      alert('Por favor completa título, sinopsis e URL de la imagen.');
+    const archivo = this.archivoSeleccionadoPelicula();
+
+    if (!p.titulo || !p.sinopsis || (!p.imagen_url && !archivo)) {
+      alert('Por favor completa título, sinopsis y selecciona una imagen o ingresa una URL.');
       return;
     }
 
@@ -316,9 +351,18 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     try {
       this.cargando.set(true);
+
+      // Si seleccionó un archivo local, subirlo a Supabase Storage (Clase 7)
+      if (archivo) {
+        const urlPublica = await this.adminService.subirArchivo(archivo, 'productos');
+        p.imagen_url = urlPublica;
+      }
+
       await this.adminService.guardarPelicula(p);
       this.modalPeliculaVisible.set(false);
-      this.mensajeExito.set('¡Película guardada correctamente!');
+      this.archivoSeleccionadoPelicula.set(null);
+      this.previewUrlPelicula.set(null);
+      this.mensajeExito.set('¡Película guardada correctamente con imagen en Supabase Storage!');
       const pelis = await this.adminService.getPeliculas();
       this.peliculasLista.set(pelis);
       setTimeout(() => this.mensajeExito.set(null), 4000);
@@ -330,9 +374,25 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   // =====================================================
-  // GESTIÓN DE CANDY Y COMBOS
+  // GESTIÓN DE CANDY Y COMBOS (Con Supabase Storage - Clase 7)
   // =====================================================
+  seleccionarArchivoCandy(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const archivo = input.files[0];
+    this.archivoSeleccionadoCandy.set(archivo);
+
+    const prev = this.previewUrlCandy();
+    if (prev) URL.revokeObjectURL(prev);
+    this.previewUrlCandy.set(URL.createObjectURL(archivo));
+  }
+
   abrirModalCandy(producto?: ProductoCandy) {
+    const prev = this.previewUrlCandy();
+    if (prev) URL.revokeObjectURL(prev);
+    this.archivoSeleccionadoCandy.set(null);
+    this.previewUrlCandy.set(null);
+
     if (producto) {
       this.itemCandyEnEdicion.set({ ...producto });
     } else {
@@ -351,13 +411,23 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   async guardarCandy() {
     const item = this.itemCandyEnEdicion();
+    const archivo = this.archivoSeleccionadoCandy();
     if (!item.nombre || !item.precio) return;
 
     try {
       this.cargando.set(true);
+
+      // Si seleccionó un archivo local, subirlo a Supabase Storage (Clase 7)
+      if (archivo) {
+        const urlPublica = await this.adminService.subirArchivo(archivo, 'productos');
+        item.imagen_url = urlPublica;
+      }
+
       await this.adminService.guardarProductoCandy(item);
       this.modalCandyVisible.set(false);
-      this.mensajeExito.set('Producto de Candy Bar actualizado.');
+      this.archivoSeleccionadoCandy.set(null);
+      this.previewUrlCandy.set(null);
+      this.mensajeExito.set('Producto de Candy Bar actualizado con imagen en Storage.');
       const prods = await this.adminService.getProductosCandy();
       this.productosCandy.set(prods);
       setTimeout(() => this.mensajeExito.set(null), 4000);
